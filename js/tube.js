@@ -19,10 +19,16 @@ console.log(obj);
 		scene.getObjectByName('Plane001').visible=false;
 
 		let tube=window.tube=scene.getObjectByName('Cylinder'),
-			m0=tube.material,
-			m1=new THREE.MeshPhysicalMaterial(m0);
-			m1.type='MeshPhysicalMaterial';
+			m0=tube.material;
+		let m1=new THREE.MeshPhysicalMaterial();
+		m1.color=m0.color;
+		m1.roughness=m0.roughness;
+		m1.metalness=.8;
+		m1.transmission=.8;
+		m1.transparent=true;
+		console.log(m0);
 		tube.material=m1;
+		tube.geometry.computeVertexNormalsFine();
 
 		requestAnimationFrame(animate);
 
