@@ -1,6 +1,6 @@
 export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
-export let geometry, material, mesh, light, hLight;
+export let geometry, material, mesh, light, light1, hLight;
 
 import './three.min.js';
 import './GLTFLoader.js';
@@ -18,14 +18,24 @@ console.log(obj);
 		scene = obj.scene;
 		scene.getObjectByName('Plane001').visible=false;
 
+		scene.traverse(el=>{
+			if (!el.isMesh) return;
+			el.geometry.computeVertexNormalsFine();
+			let ma=el.material;
+			ma.flatShading=false;
+			if (ma.name=='Material') {
+				ma.color.multiplyScalar(1.4);
+				ma.roughness=.4;
+			}
+		})
+
 		let tube=window.tube=scene.getObjectByName('Cylinder'),
 			m0=tube.material;
 		let m1=new THREE.MeshPhysicalMaterial();
 		m1.color=m0.color;
-		m1.roughness=.7;
-		m1.metalness=.34;
+		m1.roughness=.8;
+		m1.metalness=.03;
 		m1.transmission=1;
-		m1.opacity=.7;
 		m1.transparent=true;
 		m1.side=THREE.DoubleSide;
 		m0.flatShading=false;
@@ -34,11 +44,17 @@ console.log(obj);
 		tube.geometry.computeVertexNormalsFine();
 
 		light = scene.getObjectByName('Sun_Orientation');
-		light.rotation.x=-1.07;
-		
+		light.intensity=.3;
+		light.rotation.y=-.95;
+
+		light1 = scene.getObjectByName('Sun001_Orientation');
+		light1.intensity=4;
+		light1.rotation.set(-1.47, 0.45, 0);
+		//light.rotation.x=-1.07;
+
 		scene.add(hLight=new THREE.HemisphereLight('#adf', '#fff', 3));
 		hLight.groundColor.multiplyScalar(-1);
-		hLight
+		hLight.position.set(1,1,3)
 
 		requestAnimationFrame(animate);
 
