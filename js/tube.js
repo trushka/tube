@@ -1,9 +1,9 @@
-let camera, scene, renderer,
+export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
-let geometry, material, mesh;
+export let geometry, material, mesh, light, hLight;
 
-import {} from './three.min.js';
-import {} from './GLTFLoader.js';
+import './three.min.js';
+import './GLTFLoader.js';
 import {vec3} from './threeCustom.js';
 
 init();
@@ -22,13 +22,23 @@ console.log(obj);
 			m0=tube.material;
 		let m1=new THREE.MeshPhysicalMaterial();
 		m1.color=m0.color;
-		m1.roughness=m0.roughness;
-		m1.metalness=.8;
-		m1.transmission=.8;
+		m1.roughness=.7;
+		m1.metalness=.34;
+		m1.transmission=1;
+		m1.opacity=.7;
 		m1.transparent=true;
+		m1.side=THREE.DoubleSide;
+		m0.flatShading=false;
 		console.log(m0);
 		tube.material=m1;
 		tube.geometry.computeVertexNormalsFine();
+
+		light = scene.getObjectByName('Sun_Orientation');
+		light.rotation.x=-1.07;
+		
+		scene.add(hLight=new THREE.HemisphereLight('#adf', '#fff', 3));
+		hLight.groundColor.multiplyScalar(-1);
+		hLight
 
 		requestAnimationFrame(animate);
 
@@ -43,7 +53,6 @@ console.log(obj);
 	});
 
 	renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
-
 }
 
 function animate() {

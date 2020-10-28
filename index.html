@@ -25,6 +25,10 @@
 	</head>
 	<body>
 		<canvas class="renderer"></canvas>
-		<script type="module" src="js/tube.js"></script>
+		<script type="module">
+			import * as _3d from './js/tube.js';
+			setTimeout(()=>Object.assign(window,_3d), 300)
+			//window._3d=_3d
+		</script>
 	</body>
 </html>
