@@ -1,6 +1,7 @@
 export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
-export let geometry, material, mesh, light, light1, hLight;
+export let geometry, material, mesh, light, light1, hLight, 
+	rings=[], ringMatireal, tube;
 
 import './three.min.js';
 import './GLTFLoader.js';
@@ -14,6 +15,8 @@ function init() {
 console.log(obj);
 
 		camera = obj.cameras[0];
+		camera.parent.position.y=11;
+		camera.lookAt(0,0,0);
 
 		scene = obj.scene;
 		scene.getObjectByName('Plane001').visible=false;
@@ -24,24 +27,30 @@ console.log(obj);
 			let ma=el.material;
 			ma.flatShading=false;
 			if (ma.name=='Material') {
-				ma.color.multiplyScalar(1.4);
+				rings.push(el);
+				if (!ringMatireal) ringMatireal = new THREE.MeshPhongMaterial({
+					color: ma.color.multiplyScalar(.2),
+					shininess: 60
+					//specular: '#666'
+				});
+				el.material = ringMatireal;
 				ma.roughness=.4;
-			}
+			};
+			if (el.name=='Cylinder') {
+				tube=el;
+				let m1=new THREE.MeshPhysicalMaterial();
+				m1.color=ma.color;
+				m1.roughness=.8;
+				m1.metalness=.03;
+				m1.transmission=1;
+				m1.transparent=true;
+				m1.side=THREE.DoubleSide;
+				//ma.flatShading=false;
+				tube.material=m1;
+				tube.geometry.computeVertexNormalsFine();
+			};
 		})
 
-		let tube=window.tube=scene.getObjectByName('Cylinder'),
-			m0=tube.material;
-		let m1=new THREE.MeshPhysicalMaterial();
-		m1.color=m0.color;
-		m1.roughness=.8;
-		m1.metalness=.03;
-		m1.transmission=1;
-		m1.transparent=true;
-		m1.side=THREE.DoubleSide;
-		m0.flatShading=false;
-		console.log(m0);
-		tube.material=m1;
-		tube.geometry.computeVertexNormalsFine();
 
 		light = scene.getObjectByName('Sun_Orientation');
 		light.intensity=.3;
