@@ -29,7 +29,7 @@ import {geometries} from './geometries.js'; export {geometries};
 init();
 
 function createPos() {
-	return vec3(Math.randFloat(0, 5), 0, 18).rotate(0, 0, Math.random()*Math.PI*2)
+	return vec3(Math.sqrt(Math.random())*5, 0, 18).rotate(0, 0, Math.random()*PI*2)
 }
 function init() {
 
@@ -87,6 +87,7 @@ function init() {
 		//document.body.append(inp);
 		inp.step=.001; inp.max=1; inp.type='range';
 
+		let targ=particles.targ=vec3(0,0,2);//3.5);
 		for (let i = 0; i < 500; i++) {
 			let pos;
 			for (let n = 0; n < 18000; n++) {
@@ -100,11 +101,8 @@ function init() {
 			particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
 			particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
 
-			let sphere=1-Math.smoothstep(particle.position.z, 3, 6);
-
-			particle.morphTargetInfluences[0] = sphere;
-			particle.scale.setScalar(Math.lerp(particle.size, .1, sphere));
-			//particle.onBeforeRender=function(){this.morphTargetInfluences[0]=inp.value}
+			particle.targ=vec3(0, Math.sqrt(Math.random()), Math.randFloat(1.9, 4.7)).rotate(0,0,Math.random()*2*PI);
+			particle.v=pos.clone().sub(targ).setLength(.0005);
 			particles.add(particle)
 		}
 
@@ -205,21 +203,35 @@ function updateBlobs( object, time0 ) {
 	//blobs[1][0]=weights[weights.length-1]*weights[weights.length-1];			
 	effect.setN(n);
 }
-
+let dt;
 function animate() {
 
 	requestAnimationFrame( animate );
 
-	var t = performance.now(), dt = t-t0;
+	var t = performance.now();
+	dt = t-t0;
 	if (dt<dMin) return; // !Eh || 
 	dt = Math.min(dt, dMax);
 	t0 = t;
 
 	time += dt * speed;
-	updateBlobs( effect, time );
+	//updateBlobs( effect, time );
 
-	//mesh.rotation.x += 0.01;
-	//mesh.rotation.y += 0.02;
+	particles.children.forEach(p=>{
+		p.position.addScaledVector(p.v, -dt);
+		let z=p.position.z,
+			sphere=1-Math.smoothstep(z, 3, 6);
+
+		p.morphTargetInfluences[0] = sphere;
+		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, 1.5, 3));
+
+		if (!p.scale.x) {
+			p.scale.setScalar(p.size);
+			p.position.copy(createPos()).z+=2;
+			p.v=p.position.clone().sub(particles.targ).setLength(.0005);
+		}
+		//this.morphTargetInfluences[0]=inp.value
+	})
 
 	renderer.render( scene, camera );
 
