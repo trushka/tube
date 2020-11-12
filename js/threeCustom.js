@@ -1,5 +1,17 @@
 import {} from './three.min.js';
+Object.assign(window.Math, THREE.Math);
+
 export let vec3=function(x,y,z) {return new THREE.Vector3(x,y,z)};
+
+THREE.Vector3.prototype.rotate=function(x,y,z,t){
+	return this.applyEuler(new THREE.Euler(x,y,z,t))
+};
+THREE.Euler.prototype.multiplyScalar=function(val) {
+	this._x*=val;
+	this._y*=val;
+	this.z*= val;
+	return this;
+};
 
 THREE.BufferGeometry.prototype.computeVertexNormalsFine = function () {
 

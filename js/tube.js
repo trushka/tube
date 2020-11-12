@@ -2,10 +2,19 @@ export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
 export let geometry, material, mesh,
 	light, light1, hLight, 
-	rings=[], ringMatireal, tube, effect;
+	rings=[], ringMatireal, tube, effect,
+	particles, pMaterial,
+	Anim = {
+		stage: 0,
+		step: function(stage, cond) {
+			if (this.stage!=stage-1) return false;
+			if (cond) ++this.stage;// console.log('stage:', )
+			return cond;
+		}
+	};
 
-var resolution = 30, isolation = 40, subtract = 3, strength=1.82,
-	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025];
+const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
+	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
 var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
 	targGeometrys=[new THREE.TetrahedronGeometry() ],//, new THREE.OctahedronGeometry(.6)
 	blobs = [new Float32Array(maxBlobs * 3), new Float32Array(maxBlobs*3), new Float32Array(maxBlobs)],
@@ -14,16 +23,17 @@ var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
 import './three.min.js';
 import './GLTFLoader.js';
 import './MetaBalls.js';
-import {vec3} from './threeCustom.js';
-export {vec3};
+import {vec3} from './threeCustom.js'; export {vec3};
+import {geometries} from './geometries.js'; export {geometries};
 
 init();
 
+function createPos() {
+	return vec3(Math.randFloat(0, 5), 0, 18).rotate(0, 0, Math.random()*Math.PI*2)
+}
 function init() {
 
 	new THREE.GLTFLoader().load('tube.glb', function(obj){
-console.log(obj);
-
 		camera = obj.cameras[0];
 		camera.parent.position.y=11;
 		camera.lookAt(0,0,0);
@@ -61,19 +71,53 @@ console.log(obj);
 				//ma.flatShading=false;
 				tube.material=m1;
 				tube.geometry.computeVertexNormalsFine();
+				tube.updateMatrix();
+				particles.position.copy(tube.position);
+				tube.geometry.applyMatrix4(tube.matrix);
+				tube.position.set(0,0,0);
+				tube.rotation.set(0,0,0);
 			};
 		})
+
+		// generate particles
+
+		scene.add(particles);
+		let inp=document.createElement('input');
+		inp.style.cssText='position:absolute; width:50%';
+		//document.body.append(inp);
+		inp.step=.001; inp.max=1; inp.type='range';
+
+		for (let i = 0; i < 500; i++) {
+			let pos;
+			for (let n = 0; n < 18000; n++) {
+				(pos=createPos().multiplyScalar(Math.random())).z+=2;
+				if (!particles.children.some(el=>el.position.distanceTo(pos)<.2+pos.z*.1)) break;
+				pos=0;
+			}
+			if (!pos) break;
+			let particle=new THREE.Mesh(geometries[Math.randInt(0,3)], pMaterial);
+			particle.position.copy(pos);
+			particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
+			particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
+
+			let sphere=1-Math.smoothstep(particle.position.z, 3, 6);
+
+			particle.morphTargetInfluences[0] = sphere;
+			particle.scale.setScalar(Math.lerp(particle.size, .1, sphere));
+			//particle.onBeforeRender=function(){this.morphTargetInfluences[0]=inp.value}
+			particles.add(particle)
+		}
 
 		let envMap = new THREE.TextureLoader().load('windows1.jpg');
 		envMap.mapping = THREE.EquirectangularReflectionMapping;
 		envMap.encoding=THREE.GammaEncoding;
 		material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
 
-		effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:1, h:.5}) );
+		effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:2, h:1}) );
 		// effect.position.set( -450, -450, -450 );
 		effect.scale.multiplyScalar( 1.2 );
 		effect.position.set(0, 0.55, -0.5);
-		scene.add( effect );
+		//scene.add( effect );
 
 		light = scene.getObjectByName('Sun_Orientation');
 		light.intensity=.3;
@@ -100,6 +144,15 @@ console.log(obj);
 
 	});
 
+	pMaterial=new THREE.MeshPhongMaterial({
+		color: 1513239,
+		emissive: 6642505,
+		shininess: 60,
+		specular: 1842204,
+		morphTargets: true,
+		morphNormals: true
+	});
+	particles=new THREE.Group();
 	renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
 
 }

@@ -3,13 +3,13 @@ THREE.ShaderChunk.envmap_fragment=THREE.ShaderChunk.envmap_fragment.replace(
 	'sampleUV.x = asin( reflectVec.z / length(reflectVec.xz) ) * RECIPROCAL_PI2 + 0.5;'
 );
 THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
-	var cell=3*2;
+	var cell=5*2;
 	var texture = new THREE.Texture();
 	var raymarch = `
 		uniform int numBlobs, steps;
 		uniform vec3 blobs[maxBlobs], blobs1[maxBlobs];
 		uniform float blobs2[maxBlobs];
-		uniform float test, k, k1, k2, minD, brightness, scale;
+		uniform float test, k, k1, k2, k3, minD, brightness, scale;
 		varying vec3 vNear, vFar;
 		varying vec4 vPoint;
 		varying float vMaxL;
@@ -21,12 +21,19 @@ THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
 		}
 
 		float world(vec3 at) {
-			float sum = 0.;
+			float sum = k3, maxCa=0.;
 			for (int i = 0; i < maxBlobs; i++) {
 				if (i==numBlobs) break;
-				sum += exp(-k1*capsule(-at+blobs[i], blobs1[i], blobs2[i]));
+				float ca=capsule(-at+blobs[i], blobs1[i], blobs2[i]);
+				if (ca<k2) sum += exp(-k1*ca);
+				#ifdef ISFRAG
+					else maxCa=max(ca, maxCa);
+				#endif
 			}
-			return -log(sum+k2)/k*scale;
+			#ifdef ISFRAG
+				if (sum==k3) sum+=maxCa;
+			#endif
+			return -log(sum)/k*scale;
 		}
 
 		vec4 raymarch(in vec3 pos, in vec3 dir, in float maxL) {
@@ -73,7 +80,8 @@ THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
 			test: {value: 5},
 			k: {value: .022},
 			k1: {value: .02},
-			k2: {value: 1e-36},
+			k2: {value: 240},
+			k3: {value: 0},
 			brightness: {value: .1},
 			minD: {value: .03},
 			depth:{value:0},
@@ -82,7 +90,7 @@ THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
 		vertexShader: `
 		uniform mat4 invMatrix;
 
-		` + raymarch.replace(/steps/g, 'stepsVert').replace('<test2', '<test') +`
+		` + raymarch.replace(/steps/g, 'stepsVert').replace('<test2', '<test').replace('if (ca<k2)', '') +`
 
 		void main() {
 			gl_Position = vec4( position.xy, -1., 1.0 );
@@ -130,7 +138,7 @@ THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
 		}
 
 		void main() {
-			if (vPoint.w >= vMaxL) discard;
+			if (vPoint.w > vMaxL*.545) discard;
 			vec3 dir = normalize(vFar - vNear), dist, norm;
 			float intensity = 0., maxL = vPoint.w; //, maxL2=maxL*maxL, dist2; //test2 = test*test;
 			vec4 point = raymarch(vPoint.xyz, dir, maxL);
@@ -169,9 +177,11 @@ THREE.MetaBalls = function(envMap, camera, blobs, maxBlobs, rect) {
 	};
 	metaBalls.onBeforeRender = function(){
 		material.uniforms.invMatrix.value.multiplyMatrices(camera.matrixWorld, camera.projectionMatrixInverse);
-		var scale=2000/camera.far/camera.matrixWorld.getMaxScaleOnAxis(),
+		var scale=metaBalls.matrixWorld.getMaxScaleOnAxis(),//2000/camera.far/camera.matrixWorld.getMaxScaleOnAxis(),
 			uf=metaBalls.material.uniforms;
-		uf.scale.value=metaBalls.matrixWorld.getMaxScaleOnAxis()/500;
+		uf.scale.value=scale/500;
+		//uf.k2.value=240/scale;
+		uf.k3.value=Math.pow(1e-31, scale);
 		//uf.minD.value=.4*scale;
 		//uf.test.value=20*scale;
 	};
