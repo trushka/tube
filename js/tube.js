@@ -1,9 +1,16 @@
+import './three.min.js';
+import './GLTFLoader.js';
+import './MetaBalls.js';
+import {vec3} from './threeCustom.js'; export {vec3};
+import {geometries} from './geometries.js'; export {geometries};
+
 export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
 export let geometry, material, mesh,
 	light, light1, hLight, 
-	rings=[], ringMatireal, tube, effect,
-	particles, pMaterial,
+	rings=[], ringMatireal, tube, effect, pMaterial,
+	particles=new THREE.Group(), figures=new THREE.Group(),
+	targGeometrys=[new THREE.TetrahedronGeometry(.5) ],//, new THREE.OctahedronGeometry(.6)
 	Anim = {
 		stage: 0,
 		step: function(stage, cond) {
@@ -16,144 +23,138 @@ export let geometry, material, mesh,
 const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
 	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
 var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
-	targGeometrys=[new THREE.TetrahedronGeometry() ],//, new THREE.OctahedronGeometry(.6)
 	blobs = [new Float32Array(maxBlobs * 3), new Float32Array(maxBlobs*3), new Float32Array(maxBlobs)],
 	weights = [63,14,-120];
-
-import './three.min.js';
-import './GLTFLoader.js';
-import './MetaBalls.js';
-import {vec3} from './threeCustom.js'; export {vec3};
-import {geometries} from './geometries.js'; export {geometries};
-
-init();
 
 function createPos() {
 	return vec3(Math.sqrt(Math.random())*5, 0, 18).rotate(0, 0, Math.random()*PI*2)
 }
-function init() {
 
-	new THREE.GLTFLoader().load('tube.glb', function(obj){
-		camera = obj.cameras[0];
-		camera.parent.position.y=11;
-		camera.lookAt(0,0,0);
-		camera.near=2;
-		camera.far=50;
-		camera.updateProjectionMatrix()
+new THREE.GLTFLoader().load('tube.glb', function(obj){
+	camera = obj.cameras[0];
+	camera.parent.position.y=11;
+	camera.lookAt(0,0,0);
+	camera.near=2;
+	camera.far=50;
+	camera.updateProjectionMatrix()
 
-		scene = obj.scene;
-		scene.getObjectByName('Plane001').visible=false;
+	scene = obj.scene;
+	scene.getObjectByName('Plane001').visible=false;
 
-		scene.traverse(el=>{
-			if (!el.isMesh) return;
-			el.geometry.computeVertexNormalsFine();
-			let ma=el.material;
-			ma.flatShading=false;
-			if (ma.name=='Material') {
-				rings.push(el);
-				if (!ringMatireal) ringMatireal = new THREE.MeshPhongMaterial({
-					color: ma.color.multiplyScalar(.2),
-					shininess: 60
-					//specular: '#666'
-				});
-				el.material = ringMatireal;
-				ma.roughness=.4;
-			};
-			if (el.name=='Cylinder') {
-				tube=el;
-				let m1=new THREE.MeshPhysicalMaterial();
-				m1.color=ma.color;
-				m1.roughness=.8;
-				m1.metalness=.03;
-				m1.transmission=1;
-				m1.transparent=true;
-				m1.side=THREE.DoubleSide;
-				//ma.flatShading=false;
-				tube.material=m1;
-				tube.geometry.computeVertexNormalsFine();
-				tube.updateMatrix();
-				particles.position.copy(tube.position);
-				tube.geometry.applyMatrix4(tube.matrix);
-				tube.position.set(0,0,0);
-				tube.rotation.set(0,0,0);
-			};
-		})
+	scene.traverse(el=>{
+		if (!el.isMesh) return;
+		el.geometry.computeVertexNormalsFine();
+		let ma=el.material;
+		ma.flatShading=false;
+		if (ma.name=='Material') {
+			rings.push(el);
+			if (!ringMatireal) ringMatireal = new THREE.MeshPhongMaterial({
+				color: ma.color.multiplyScalar(.2),
+				shininess: 60
+				//specular: '#666'
+			});
+			el.material = ringMatireal;
+			ma.roughness=.4;
+		};
+		if (el.name=='Cylinder') {
+			tube=el;
+			let m1=new THREE.MeshPhysicalMaterial();
+			m1.color=ma.color;
+			m1.roughness=.8;
+			m1.metalness=.03;
+			m1.transmission=1;
+			m1.transparent=true;
+			m1.side=THREE.DoubleSide;
+			//ma.flatShading=false;
+			tube.material=m1;
+			tube.geometry.computeVertexNormalsFine();
+			tube.updateMatrix();
+			particles.position.copy(tube.position);
+			figures.position.copy(tube.position);
+			tube.geometry.applyMatrix4(tube.matrix);
+			tube.position.set(0,0,0);
+			tube.rotation.set(0,0,0);
+		};
+	})
 
-		// generate particles
+	// generate particles
 
-		scene.add(particles);
-		let inp=document.createElement('input');
-		inp.style.cssText='position:absolute; width:50%';
-		//document.body.append(inp);
-		inp.step=.001; inp.max=1; inp.type='range';
+	scene.add(particles, figures);
+	let inp=document.createElement('input');
+	inp.style.cssText='position:absolute; width:50%';
+	//document.body.append(inp);
+	inp.step=.001; inp.max=1; inp.type='range';
 
-		let targ=particles.targ=vec3(0,0,2);//3.5);
-		for (let i = 0; i < 500; i++) {
-			let pos;
-			for (let n = 0; n < 18000; n++) {
-				(pos=createPos().multiplyScalar(Math.random())).z+=2;
-				if (!particles.children.some(el=>el.position.distanceTo(pos)<.2+pos.z*.1)) break;
-				pos=0;
-			}
-			if (!pos) break;
-			let particle=new THREE.Mesh(geometries[Math.randInt(0,3)], pMaterial);
-			particle.position.copy(pos);
-			particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
-			particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
-
-			particle.targ=vec3(0, Math.sqrt(Math.random()), Math.randFloat(1.9, 4.7)).rotate(0,0,Math.random()*2*PI);
-			particle.v=pos.clone().sub(targ).setLength(.0005);
-			particles.add(particle)
+	for (let i = 0; i < 500; i++) {
+		let pos;
+		for (let n = 0; n < 18000; n++) {
+			(pos=createPos().multiplyScalar(Math.random())).z+=2;
+			if (!particles.children.some(el=>el.position.distanceTo(pos)<.2+pos.z*.1)) break;
+			pos=0;
 		}
+		if (!pos) break;
+		addParticle(pos);
+	}
+	particles.children.sort((p1,p2)=>p1.position.z-p2.position.z);
 
-		let envMap = new THREE.TextureLoader().load('windows1.jpg');
-		envMap.mapping = THREE.EquirectangularReflectionMapping;
-		envMap.encoding=THREE.GammaEncoding;
-		material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
+	let envMap = new THREE.TextureLoader().load('windows1.jpg');
+	envMap.mapping = THREE.EquirectangularReflectionMapping;
+	envMap.encoding=THREE.GammaEncoding;
+	material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
 
-		effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:2, h:1}) );
-		// effect.position.set( -450, -450, -450 );
-		effect.scale.multiplyScalar( 1.2 );
-		effect.position.set(0, 0.55, -0.5);
-		//scene.add( effect );
+	effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:2, h:1}) );
+	// effect.position.set( -450, -450, -450 );
+	effect.scale.multiplyScalar( 1.2 );
+	effect.position.set(0, 0.55, -0.5);
+	//scene.add( effect );
 
-		light = scene.getObjectByName('Sun_Orientation');
-		light.intensity=.3;
-		light.rotation.y=-.95;
+	light = scene.getObjectByName('Sun_Orientation');
+	light.intensity=.3;
+	light.rotation.y=-.95;
 
-		light1 = scene.getObjectByName('Sun001_Orientation');
-		light1.intensity=4;
-		light1.rotation.set(-1.47, 0.45, 0);
-		//light.rotation.x=-1.07;
+	light1 = scene.getObjectByName('Sun001_Orientation');
+	light1.intensity=4;
+	light1.rotation.set(-1.47, 0.45, 0);
+	//light.rotation.x=-1.07;
 
-		scene.add(hLight=new THREE.HemisphereLight('#adf', '#fff', 3));
-		hLight.groundColor.multiplyScalar(-1);
-		hLight.position.set(1,1,3)
+	scene.add(hLight=new THREE.HemisphereLight('#adf', '#fff', 3));
+	hLight.groundColor.multiplyScalar(-1);
+	hLight.position.set(1,1,3);
 
-		requestAnimationFrame(animate);
+	(window.onresize = function () {
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
+		camera.aspect = canvas.width / canvas.height;
+		camera.zoom=Math.min(1, camera.aspect);
+		camera.updateProjectionMatrix();
+	} )();
 
-		(window.onresize = function () {
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
-			camera.aspect = canvas.width / canvas.height;
-			camera.zoom=Math.min(1, camera.aspect);
-			camera.updateProjectionMatrix();
-		} )();
+	requestAnimationFrame( animate );
+});
 
-	});
+pMaterial=new THREE.MeshPhongMaterial({
+	color: 1513239,
+	emissive: 6642505,
+	shininess: 60,
+	specular: 1842204,
+	morphTargets: true,
+	morphNormals: true
+});
+function addParticle(pos) {
+	let particle=new THREE.Mesh(geometries[Math.randInt(0,3)], pMaterial);
+	particle.position.copy(pos);
+	particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
+	particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
 
-	pMaterial=new THREE.MeshPhongMaterial({
-		color: 1513239,
-		emissive: 6642505,
-		shininess: 60,
-		specular: 1842204,
-		morphTargets: true,
-		morphNormals: true
-	});
-	particles=new THREE.Group();
-	renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
+	particle.targ=vec3(0, 0, Math.randFloat(2, 3));
+	particle.v=pos.clone().sub(targ).setLength( Math.randFloat(.0004, .0005));
+	particles.add(particle);
+	return particle;
+};
 
-}
+let targ=particles.targ=vec3(0,0,2);//3.5);
+renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
+
 function updateBlobs( object, time0 ) {
 
 	//object.reset();
@@ -203,7 +204,7 @@ function updateBlobs( object, time0 ) {
 	//blobs[1][0]=weights[weights.length-1]*weights[weights.length-1];			
 	effect.setN(n);
 }
-let dt;
+let dt,	creatFigure=4000;
 function animate() {
 
 	requestAnimationFrame( animate );
@@ -217,21 +218,53 @@ function animate() {
 	time += dt * speed;
 	//updateBlobs( effect, time );
 
+	const dist=2;
+	
+	let pos=createPos(), testPos;
+
+	figures.traverse(p=>{
+		if (!p.isMesh) return;
+		let stage=Math.mapLinear(p.position.z, p.pos0.z, p.targ.z, 0, 1),
+			anim=p.parent.anim;
+		//if (p.targ.z<-2) creatFigure=1;
+		anim.step(1, stage>.95)
+		anim.step(2, p.position.z<-2);
+		if (anim.stage) {
+			p.targ.z-=.0007*anim.stage*dt;
+			stage=1;
+		};
+		p.position.addScaledVector(p.v, -dt*(1-stage)).lerp(p.targ, .0007*dt*stage);
+		p.scale.setScalar(Math.lerp(p.size, .1, stage));
+		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
+	});
 	particles.children.forEach(p=>{
+		//p.v.clone().cross()
 		p.position.addScaledVector(p.v, -dt);
-		let z=p.position.z,
+		let z=p.position.z, z1=p.targ.z,
 			sphere=1-Math.smoothstep(z, 3, 6);
 
 		p.morphTargetInfluences[0] = sphere;
-		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, 1.5, 3));
+		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, z1-1, z1+.7));
 
-		if (!p.scale.x) {
-			p.scale.setScalar(p.size);
-			p.position.copy(createPos()).z+=2;
-			p.v=p.position.clone().sub(particles.targ).setLength(.0005);
-		}
+		if (!p.scale.x) particles.remove(p);
 		//this.morphTargetInfluences[0]=inp.value
-	})
+		testPos=testPos||(p.position.z>pos.z-dist && pos.distanceTo(p.position)<dist);
+	});
+	if ( (creatFigure+=dt)>4500) {
+		let figure=new THREE.Group();
+		figure.anim=Object.create(Anim);
+		figures.add(figure);
+		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
+		.splice(6, targGeometrys[0].vertices.length).forEach((p,i)=>{
+			//console.log(i)
+			figure.add(p);
+			(p.targ=targGeometrys[0].vertices[targGeometrys[0].vertices.length-1-i].clone()).z-=0.2;
+			p.pos0=p.position.clone();
+			p.size=p.scale.z;
+		});
+		creatFigure=0;
+	}
+	if (!testPos) addParticle(pos);
 
 	renderer.render( scene, camera );
 
