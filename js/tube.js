@@ -11,6 +11,7 @@ export let geometry, material, mesh,
 	rings=[], ringMatireal, tube, effect, pMaterial,
 	particles=new THREE.Group(), figures=new THREE.Group(),
 	targGeometrys=[new THREE.TetrahedronGeometry(.5) ],//, new THREE.OctahedronGeometry(.6)
+	targWGeometrys=[new THREE.WireframeGeometry(targGeometrys[0]) ],
 	Anim = {
 		stage: 0,
 		step: function(stage, cond) {
@@ -100,7 +101,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	let envMap = new THREE.TextureLoader().load('windows1.jpg');
 	envMap.mapping = THREE.EquirectangularReflectionMapping;
 	envMap.encoding=THREE.GammaEncoding;
-	material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
+	//material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
 
 	effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:2, h:1}) );
 	// effect.position.set( -450, -450, -450 );
@@ -132,21 +133,24 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	requestAnimationFrame( animate );
 });
 
-pMaterial=new THREE.MeshPhongMaterial({
+material=new THREE.MeshPhongMaterial({
 	color: 1513239,
 	emissive: 6642505,
 	shininess: 60,
 	specular: 1842204,
-	morphTargets: true,
-	morphNormals: true
 });
+
+pMaterial=material.clone();
+pMaterial.morphTargets=true;
+pMaterial.morphNormals=true;
+
 function addParticle(pos) {
 	let particle=new THREE.Mesh(geometries[Math.randInt(0,3)], pMaterial);
 	particle.position.copy(pos);
 	particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
 	particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
 
-	particle.targ=vec3(0, 0, Math.randFloat(2, 3));
+	particle.targ=vec3(0, 0, Math.randFloat(2.3, 3));
 	particle.v=pos.clone().sub(targ).setLength( Math.randFloat(.0004, .0005));
 	particles.add(particle);
 	return particle;
@@ -222,20 +226,27 @@ function animate() {
 	
 	let pos=createPos(), testPos;
 
+	figures.children.forEach(f=>{if (f.delete) figures.remove(f)});
+
 	figures.traverse(p=>{
+		if ('delete' in p) p.delete=true;
+
+		let anim=p.parent.anim;
+		if (p.isTransformer) {
+			if (anim.stage) {
+				p.position.z-=.0012*anim.stage*dt;
+			};
+
+		}
 		if (!p.isMesh) return;
-		let stage=Math.mapLinear(p.position.z, p.pos0.z, p.targ.z, 0, 1),
-			anim=p.parent.anim;
-		//if (p.targ.z<-2) creatFigure=1;
-		anim.step(1, stage>.95)
+		let targ=p.targ.clone().applyMatrix4(p.targMatrix);
+		p.stage=Math.clamp(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1), p.stage||0, 1);
+		//if (targ.z<-2) creatFigure=1;
+		anim.step(1, p.stage>.95);
 		anim.step(2, p.position.z<-2);
-		if (anim.stage) {
-			p.targ.z-=.0007*anim.stage*dt;
-			stage=1;
-		};
-		p.position.addScaledVector(p.v, -dt*(1-stage)).lerp(p.targ, .0007*dt*stage);
-		p.scale.setScalar(Math.lerp(p.size, .1, stage));
-		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
+		p.position.addScaledVector(p.v, -dt*(1-p.stage)).lerp(targ, .0007*dt*p.stage);
+		p.scale.setScalar(Math.lerp(p.size, .1, p.stage));
+		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, p.stage);
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
@@ -244,7 +255,7 @@ function animate() {
 			sphere=1-Math.smoothstep(z, 3, 6);
 
 		p.morphTargetInfluences[0] = sphere;
-		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, z1-1, z1+.7));
+		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, z1-1.5, z1+.7));
 
 		if (!p.scale.x) particles.remove(p);
 		//this.morphTargetInfluences[0]=inp.value
@@ -254,6 +265,10 @@ function animate() {
 		let figure=new THREE.Group();
 		figure.anim=Object.create(Anim);
 		figures.add(figure);
+		let fig0=new THREE.Object3D();
+		figure.add(fig0);
+		fig0.isTransformer=true;
+		figure.transformer=fig0;
 		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
 		.splice(6, targGeometrys[0].vertices.length).forEach((p,i)=>{
 			//console.log(i)
@@ -261,7 +276,22 @@ function animate() {
 			(p.targ=targGeometrys[0].vertices[targGeometrys[0].vertices.length-1-i].clone()).z-=0.2;
 			p.pos0=p.position.clone();
 			p.size=p.scale.z;
+			p.targMatrix=fig0.matrix;
+			p.isParticle=true;
+			p.onBeforeRender=function(){figure.delete=false};
 		});
+		let pos=targWGeometrys[0].attributes.position.array;
+		//blobs[0].set(pos);
+		let n=pos.length / 6;
+		for (let i = 0; i < n; i++) {
+			let i6=i*6, i63=i6+3,
+				a=new THREE.Vector3(pos[i6], pos[i6+1], pos[i6+2]),
+				ab=new THREE.Vector3(pos[i6]-pos[i63], pos[i6+1]-pos[i63+1], pos[i6+2]-pos[i63+2]);
+			a.toArray(blobs[0], i*3);
+			ab.toArray(blobs[1], i*3);
+			blobs[2][i]=ab.lengthSq();
+		}
+
 		creatFigure=0;
 	}
 	if (!testPos) addParticle(pos);
