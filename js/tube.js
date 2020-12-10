@@ -6,12 +6,12 @@ import {geometries} from './geometries.js'; export {geometries};
 
 export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
-export let geometry, material, mesh,
+export let geometry, material, Stick,
 	light, light1, hLight, 
 	rings=[], ringMatireal, tube, effect, pMaterial,
 	particles=new THREE.Group(), figures=new THREE.Group(),
-	targGeometrys=[new THREE.TetrahedronGeometry(.5) ],//, new THREE.OctahedronGeometry(.6)
-	targWGeometrys=[new THREE.WireframeGeometry(targGeometrys[0]) ],
+	targGeometrys=[new THREE.TetrahedronGeometry(.5).rotateY(.2) ],//, new THREE.OctahedronGeometry(.6)
+	targIndeces=[],
 	Anim = {
 		stage: 0,
 		step: function(stage, cond) {
@@ -20,6 +20,17 @@ export let geometry, material, mesh,
 			return cond;
 		}
 	};
+
+targGeometrys.forEach(geometry=>{
+	let indeces=[];
+	let wGeometry=geometry.clone();
+	wGeometry.vertices.forEach((v,i)=>{v.x=i});
+	let buffer=new THREE.WireframeGeometry(wGeometry).attributes.position;
+	for (let i = 0; i < buffer.count/2; i++) {
+		indeces.push([buffer.getX(i*2), buffer.getX(i*2+1)])
+	}
+	targIndeces.push(indeces)
+})
 
 const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
 	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
@@ -144,6 +155,9 @@ pMaterial=material.clone();
 pMaterial.morphTargets=true;
 pMaterial.morphNormals=true;
 
+Stick=new THREE.Mesh(new THREE.CylinderBufferGeometry(.02, .02, 1, 6), material);
+Stick.geometry.translate(0, .5, 0);
+
 function addParticle(pos) {
 	let particle=new THREE.Mesh(geometries[Math.randInt(0,3)], pMaterial);
 	particle.position.copy(pos);
@@ -238,7 +252,8 @@ function animate() {
 			};
 
 		}
-		if (!p.isMesh) return;
+		if (p.doTransform) p.doTransform();
+		if (!p.targMatrix) return;
 		let targ=p.targ.clone().applyMatrix4(p.targMatrix);
 		p.stage=Math.clamp(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1), p.stage||0, 1);
 		//if (targ.z<-2) creatFigure=1;
@@ -266,31 +281,35 @@ function animate() {
 		figure.anim=Object.create(Anim);
 		figures.add(figure);
 		let fig0=new THREE.Object3D();
-		figure.add(fig0);
 		fig0.isTransformer=true;
 		figure.transformer=fig0;
 		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
 		.splice(6, targGeometrys[0].vertices.length).forEach((p,i)=>{
 			//console.log(i)
 			figure.add(p);
-			(p.targ=targGeometrys[0].vertices[targGeometrys[0].vertices.length-1-i].clone()).z-=0.2;
+			(p.targ=targGeometrys[0].vertices[i].clone()).z-=0.2;
 			p.pos0=p.position.clone();
 			p.size=p.scale.z;
 			p.targMatrix=fig0.matrix;
 			p.isParticle=true;
 			p.onBeforeRender=function(){figure.delete=false};
 		});
-		let pos=targWGeometrys[0].attributes.position.array;
-		//blobs[0].set(pos);
-		let n=pos.length / 6;
-		for (let i = 0; i < n; i++) {
-			let i6=i*6, i63=i6+3,
-				a=new THREE.Vector3(pos[i6], pos[i6+1], pos[i6+2]),
-				ab=new THREE.Vector3(pos[i6]-pos[i63], pos[i6+1]-pos[i63+1], pos[i6+2]-pos[i63+2]);
-			a.toArray(blobs[0], i*3);
-			ab.toArray(blobs[1], i*3);
-			blobs[2][i]=ab.lengthSq();
-		}
+		figure.add(fig0);
+		let vertices=figure.children;
+		targIndeces[0].forEach((ind)=> {
+			let stick=Stick.clone();
+
+			stick.a=vertices[ind[0]].position;
+			stick.b=vertices[ind[1]].position;
+			stick.ab=vec3();
+			stick.doTransform=function() {
+				stick.ab.subVectors(stick.b,stick.a);
+				stick.scale.y=stick.ab.length();
+				stick.quaternion.setFromUnitVectors(stick.up, stick.ab.normalize());
+				stick.position.copy(stick.a)
+			};
+			figure.add(stick);
+		})
 
 		creatFigure=0;
 	}
