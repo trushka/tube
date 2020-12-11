@@ -293,20 +293,26 @@ function animate() {
 			p.targMatrix=fig0.matrix;
 			p.isParticle=true;
 			p.onBeforeRender=function(){figure.delete=false};
+			p.stage=0;
 		});
 		figure.add(fig0);
 		let vertices=figure.children;
 		targIndeces[0].forEach((ind)=> {
-			let stick=Stick.clone();
-
-			stick.a=vertices[ind[0]].position;
-			stick.b=vertices[ind[1]].position;
-			stick.ab=vec3();
+			let stick=Stick.clone(),
+				p1=vertices[ind[0]],
+				p2=vertices[ind[1]],
+				a=p1.position,
+				b=p2.position,
+				ab=vec3();
+			stick.scale.y=0;
 			stick.doTransform=function() {
-				stick.ab.subVectors(stick.b,stick.a);
-				stick.scale.y=stick.ab.length();
-				stick.quaternion.setFromUnitVectors(stick.up, stick.ab.normalize());
-				stick.position.copy(stick.a)
+				let stage=Math.min(Math.min(p1.stage, p2.stage)+.14, 1),
+					scale=(stage*stage*stage*3+1)%2-1;
+				//if (!stick.scale.y) console.log(p1.stage, p2.stage, scale);
+				ab.subVectors(b,a);
+				stick.scale.y=ab.length()*scale;
+				stick.quaternion.setFromUnitVectors(stick.up, ab.normalize());
+				stick.position.copy(scale>0?a:b)
 			};
 			figure.add(stick);
 		})
