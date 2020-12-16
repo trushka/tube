@@ -1,4 +1,4 @@
-import {} from './three.min.js';
+//import {} from './three.min.js';
 Object.assign(window.Math, THREE.Math);
 
 export let vec3=function(x,y,z) {return new THREE.Vector3(x,y,z)};

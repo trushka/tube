@@ -1,4 +1,4 @@
-import './three.min.js';
+//import './three.min.js';
 export let geometries=[
 	new THREE.BoxBufferGeometry(1.2,1.2,1.2, 3,3,3),
 	new THREE.CylinderGeometry(.8,.8,.7,6),
