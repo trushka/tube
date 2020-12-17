@@ -157,7 +157,7 @@ export let color0=new THREE.Color(6642505),
 		sh.vertexShader='varying float vY;\n'+sh.vertexShader.replace('}', '	vY=position.y;\n}');
 		
 		sh.fragmentShader='varying float vY;\nuniform vec3 color1;\n'
-		 +sh.fragmentShader.replace('= emissive;', '= mix(emissive, color1, vY);');
+		 +sh.fragmentShader.replace('= emissive;', '= mix(emissive, color1, smoothstep(0., 1., vY));');
 	}
 })).updateUniforms=[['emissive', color0], ['color1', color0]];
 
