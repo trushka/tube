@@ -297,9 +297,9 @@ function animate() {
 				ab=vec3();
 			stick.scale.y=0;
 			stick.doTransform=function() {
-				let stage=Math.lerp(p1.stage, p2.stage, .5);
-				stage*=stage;
-				let scale=(stage*stage*stage*3+1)%2-1;
+				let stage=Math.min(p1.stage+p2.stage, 1.9)/1.9;
+				stage*=stage*stage;
+				let scale=(stage*stage*3+1)%2-1;
 				//if (!stick.scale.y) console.log(p1.stage, p2.stage, scale);
 				ab.subVectors(b,a);
 				stick.scale.y=ab.length()*scale;
