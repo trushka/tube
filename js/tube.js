@@ -216,28 +216,30 @@ function animate() {
 		if ('delete' in p) p.delete=true;
 
 		let anim=p.parent.anim;
+		if (p.name=='figure') p.stage=0;
 		if (p.isTransformer) {
+			anim.step(1, p.parent.stage>p.count*.98);
+			p.rotateOnAxis(p.axis0, dt*.0002*(2+!anim.stage));
 			if (anim.stage) {
-				p.position.z-=.0012*anim.stage*dt;
-			};
-
+				p.position.z-=.0006*(anim.stage+1)*dt;
+			} else p.axis0.lerp(p.up, dt*.0004).normalize();
 		}
 		if (p.doTransform) p.doTransform();
 		if (!p.targMatrix) return;
 		let targ=p.targ.clone().applyMatrix4(p.targMatrix);
 		let st0=p.stage;
-		p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1), p.stage);
+		p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1)*1.05, p.stage);
 		if (anim.stage && p.stage==st0) p.stage+=p.sV*dt
 		else p.sV=(p.stage-st0)/dt;
-		p.stage=Math.min(p.stage, 1)
+		let stage=Math.min(p.stage, 1);
+		p.parent.stage+=p.stage;
 
-		anim.step(1, p.stage>.97);
 		anim.step(2, p.position.z<-2);
-		p.position.addScaledVector(p.v, -dt*(1-p.stage)).lerp(targ, .0007*dt*p.stage);
-		p.scale.setScalar(Math.lerp(p.size, .11, p.stage*p.stage));
-		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, p.stage);
+		p.position.addScaledVector(p.v, -dt*(1-stage)).lerp(targ, .0007*dt*stage);
+		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
+		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, dt*.0002*anim.stage*anim.stage);
+		p.color.lerp(p.color1, Math.smootherstep(-p.position.z, 2, 6));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
@@ -252,23 +254,31 @@ function animate() {
 		//this.morphTargetInfluences[0]=inp.value
 		testPos=testPos||(p.position.z>pos.z-dist && pos.distanceTo(p.position)<dist);
 	});
-	if ( (creatFigure+=dt)>5000) {
+	if ( (creatFigure+=dt)>5500) {
 		gIndex+=1;
 		gIndex%=targGeometrys.length;
 
 		let figure=new THREE.Group();
+		figure.name='figure';
 		figure.anim=Object.create(Anim);
 		figures.add(figure);
 		let fig0=new THREE.Object3D();
+		fig0.name='transformer';
 		fig0.isTransformer=true;
 		figure.transformer=fig0;
-		fig0.rotation.set(Math.random()*PI*2, Math.random()*PI*2, Math.random()*PI*2);
+		fig0.axis0=vec3(Math.random()-.5, Math.random()-.5, Math.random()-.5).normalize();
 		fig0.position.z=-.23
+		if (!gIndex) fig0.up.set(1,1,1).normalize();
+
+		fig0.count=targGeometrys[gIndex].vertices.length;
+
+		let hue0=Math.random();
 
 		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
-		.splice(5, targGeometrys[gIndex].vertices.length).forEach((p,i)=>{
+		.splice(5, fig0.count).forEach((p,i)=>{
 			//console.log(i)
 			figure.add(p);
+			p.name='particle';
 			p.targ=targGeometrys[gIndex].vertices[i].clone();
 			p.pos0=p.position.clone();
 			p.size=p.scale.z;
@@ -283,8 +293,9 @@ function animate() {
 
 			p.material=pFigMaterial;
 			p.color=color0.clone();
-			p.color1=color0.clone().offsetHSL(Math.random(), .7 ,0);
-			p.color1.g*=.8;
+			p.color1=color0.clone().offsetHSL(hue0+i/fig0.count, .7 ,0);
+			p.color1.g*=.7;
+			p.color1.g*=.9;
 		});
 		figure.add(fig0);
 		let vertices=figure.children;

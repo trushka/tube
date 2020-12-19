@@ -12,6 +12,10 @@ THREE.Euler.prototype.multiplyScalar=function(val) {
 	this.z*= val;
 	return this;
 };
+THREE.Quaternion.prototype.setFromXYZ=function(x,y,z,order,upd) {
+	if (!!order===order) upd=order;
+	this.setFromEuler(new THREE.Euler(x,y,z,order), upd)
+}
 
 THREE.BufferGeometry.prototype.computeVertexNormalsFine = function () {
 
