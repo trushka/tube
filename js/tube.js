@@ -1,4 +1,4 @@
-import './three.js';
+import './three.min.js';
 import './GLTFLoader.js';
 import {vec3} from './threeCustom.js'; export {vec3};
 import {geometries} from './geometries.js'; export {geometries};
@@ -293,7 +293,7 @@ function animate() {
 
 			p.material=pFigMaterial;
 			p.color=color0.clone();
-			p.color1=color0.clone().offsetHSL(hue0+i/fig0.count, .7 ,0);
+			p.color1=color0.clone().offsetHSL(hue0+i/fig0.count, .8 ,.14);
 			p.color1.g*=.7;
 			p.color1.g*=.9;
 		});
