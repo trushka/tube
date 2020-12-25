@@ -157,7 +157,7 @@ export let color0=new THREE.Color(6642505),
 		sh.vertexShader='varying float vY;\n'+sh.vertexShader.replace('}', '	vY=position.y;\n}');
 		
 		sh.fragmentShader='varying float vY;\nuniform vec3 color1;\n'
-		 +sh.fragmentShader.replace('= emissive;', '= mix(emissive, color1, smoothstep(0., 1., vY));');
+		 +sh.fragmentShader.replace('= emissive;', '= mix(emissive, color1, smoothstep(0.15, 0.85, vY));');
 	}
 })).updateUniforms=[['emissive', color0], ['color1', color0]];
 
@@ -242,7 +242,7 @@ function animate() {
 		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 5.3));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 2.9, 4));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
@@ -277,8 +277,10 @@ function animate() {
 
 		let hue0=Math.random();
 
-		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
-		.splice(particles.children.findIndex(p=>p.position.z>2), fig0.count).forEach((p,i)=>{
+		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z);
+		let first=particles.children.findIndex(p=>p.position.z>2);
+		if (particles.children[first].position.z>2.1) first--;
+		particles.children.splice(first, fig0.count).forEach((p,i)=>{
 			//console.log(i)
 			figure.add(p);
 			p.name='particle';
@@ -297,8 +299,8 @@ function animate() {
 			p.material=pFigMaterial;
 			p.color=color0.clone();
 			p.color1=color0.clone().offsetHSL(hue0+i/fig0.count, .8 ,.14);
-			p.color1.g*=.7;
-			p.color1.g*=.9;
+			p.color1.g*=.78;
+			p.color1.g*=.92;
 		});
 		figure.add(fig0);
 		let vertices=figure.children;
