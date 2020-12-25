@@ -242,7 +242,7 @@ function animate() {
 		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 2.9, 4));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3.1, 4.3));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
