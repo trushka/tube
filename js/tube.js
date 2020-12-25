@@ -208,7 +208,7 @@ function animate() {
 
 	const dist=2;
 	
-	let pos=createPos(), testPos;
+	let pos=createPos(), testPos, targ=vec3();
 
 	figures.children.forEach(f=>{if (f.delete) figures.remove(f)});
 
@@ -216,30 +216,33 @@ function animate() {
 		if ('delete' in p) p.delete=true;
 
 		let anim=p.parent.anim;
-		if (p.name=='figure') p.stage=0;
+		if (p.name=='figure') {
+			p.stage=4;
+		}
 		if (p.isTransformer) {
-			anim.step(1, p.parent.stage>p.count*.98);
-			p.rotateOnAxis(p.axis0, dt*.0002*(2+!anim.stage));
-			if (anim.stage) {
-				p.position.z-=.0006*(anim.stage+1)*dt;
-			} else p.axis0.lerp(p.up, dt*.0004).normalize();
+			let stage=p.parent.stage, z=p.position.z-p.z0;
+			//anim.step(2, p.position.z<-3);
+			p.position.z-=Math.clamp((stage-.9)*.03, 0, .002)
+			 *Math.smoothstep(Math.abs(z+3.6)*stage/1.5,-.14, .55)*dt;
+			anim.step(1, stage>.99||z);
+			p.rotateOnAxis(p.axis0, dt*.002*Math.min(stage, .1/(-z+.25)+.18));
+			p.axis0.lerp(p.up, dt*.0003).normalize();
 		}
 		if (p.doTransform) p.doTransform();
-		if (!p.targMatrix) return;
-		let targ=p.targ.clone().applyMatrix4(p.targMatrix);
+		if (!p.isParticle) return;
+		targ.copy(p.targ).applyMatrix4(p.targMatrix);
 		let st0=p.stage;
-		p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1)*1.05, p.stage);
-		if (anim.stage && p.stage==st0) p.stage+=p.sV*dt
-		else p.sV=(p.stage-st0)/dt;
+		if (anim.stage ) p.stage+=(p.sV=Math.lerp(p.sV, .001, 0.005*dt))*dt;
+		else p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1)*1.05, p.stage);
 		let stage=Math.min(p.stage, 1);
-		p.parent.stage+=p.stage;
+		p.parent.stage=Math.min(p.parent.stage, p.stage);
 
-		anim.step(2, p.position.z<-2);
-		p.position.addScaledVector(p.v, -dt*(1-stage)).lerp(targ, .0007*dt*stage);
+		//anim.step(3, p.position.z<-3.2);
+		p.position.addScaledVector(p.v, -dt*(1-stage*stage)).lerp(targ, .0018*dt*stage);
 		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smootherstep(-p.position.z, 2, 6));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 5.3));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
@@ -267,7 +270,7 @@ function animate() {
 		fig0.isTransformer=true;
 		figure.transformer=fig0;
 		fig0.axis0=vec3(Math.random()-.5, Math.random()-.5, Math.random()-.5).normalize();
-		fig0.position.z=-.23
+		fig0.position.z=fig0.z0=-.23
 		if (!gIndex) fig0.up.set(1,1,1).normalize();
 
 		fig0.count=targGeometrys[gIndex].vertices.length;
@@ -275,7 +278,7 @@ function animate() {
 		let hue0=Math.random();
 
 		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z)
-		.splice(5, fig0.count).forEach((p,i)=>{
+		.splice(particles.children.findIndex(p=>p.position.z>2), fig0.count).forEach((p,i)=>{
 			//console.log(i)
 			figure.add(p);
 			p.name='particle';
@@ -308,7 +311,7 @@ function animate() {
 				ab=vec3();
 			stick.scale.y=0;
 			stick.doTransform=function() {
-				let stage=Math.min(p1.stage+p2.stage, 1.9)/1.9;
+				let stage=Math.min(p1.stage+p2.stage, 1.95)/1.95;
 				stage*=stage*stage;
 				let scale=(stage*stage*3+1)%2-1;
 				//if (!stick.scale.y) console.log(p1.stage, p2.stage, scale);
