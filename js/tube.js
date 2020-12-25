@@ -20,9 +20,15 @@ export let geometry, material, Stick,
 		}
 	};
 
+const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
+	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
+var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
+	blobs = [new Float32Array(maxBlobs * 3), new Float32Array(maxBlobs*3), new Float32Array(maxBlobs)],
+	weights = [63,14,-120];
+
 targGeometrys.forEach(geometry=>{
 	let indeces=[];
-	let wGeometry=geometry.clone();
+	let wGeometry=geometry.rotateY(PI).clone();
 	wGeometry.vertices.forEach((v,i)=>{v.x=i});
 	let buffer=new THREE.WireframeGeometry(wGeometry).attributes.position;
 	for (let i = 0; i < buffer.count/2; i++) {
@@ -30,12 +36,6 @@ targGeometrys.forEach(geometry=>{
 	}
 	targIndeces.push(indeces)
 })
-
-const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
-	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
-var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
-	blobs = [new Float32Array(maxBlobs * 3), new Float32Array(maxBlobs*3), new Float32Array(maxBlobs)],
-	weights = [63,14,-120];
 
 function createPos() {
 	return vec3(Math.sqrt(Math.random())*5, 0, 18).rotate(0, 0, Math.random()*PI*2)
@@ -225,7 +225,7 @@ function animate() {
 			p.position.z-=Math.clamp((stage-.9)*.03, 0, .002)
 			 *Math.smoothstep(Math.abs(z+3.6)*stage/1.5,-.14, .55)*dt;
 			anim.step(1, stage>.99||z);
-			p.rotateOnAxis(p.axis0, dt*.002*Math.min(stage, .1/(-z+.25)+.18));
+			p.rotateOnAxis(p.axis0, dt*.0025*Math.min(stage, .1/(-z+.2)+.12));
 			p.axis0.lerp(p.up, dt*.0003).normalize();
 		}
 		if (p.doTransform) p.doTransform();
@@ -242,7 +242,7 @@ function animate() {
 		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3.1, 4.3));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 4.3));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
@@ -269,9 +269,10 @@ function animate() {
 		fig0.name='transformer';
 		fig0.isTransformer=true;
 		figure.transformer=fig0;
-		fig0.axis0=vec3(Math.random()-.5, Math.random()-.5, Math.random()-.5).normalize();
-		fig0.position.z=fig0.z0=-.23
+		fig0.axis0=vec3(1, Math.random()*.5, 0).rotate(0,Math.random()*PI*2,0).normalize();
+		fig0.position.z=fig0.z0=-.23;
 		if (!gIndex) fig0.up.set(1,1,1).normalize();
+		//fig0.add(new THREE.ArrowHelper(fig0.up));
 
 		fig0.count=targGeometrys[gIndex].vertices.length;
 
