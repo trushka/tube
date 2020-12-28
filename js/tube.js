@@ -21,7 +21,7 @@ export let geometry, material, Stick,
 	};
 
 const resolution = 30, isolation = 40, subtract = 3, strength=1.82, pCount=80, pSize=.2,
-	maxBlobs = 20, speed = 3/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
+	maxBlobs = 20, speed = 1/5000, delta=.15, amplitude = 1.1, roV = [.00046, -.00025], PI=Math.PI;
 var t0 = performance.now(), dMax = 80, dMin = 1000/60, dT = 1000/50, time=0,
 	blobs = [new Float32Array(maxBlobs * 3), new Float32Array(maxBlobs*3), new Float32Array(maxBlobs)],
 	weights = [63,14,-120];
@@ -100,7 +100,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 		let pos;
 		for (let n = 0; n < 18000; n++) {
 			(pos=createPos().multiplyScalar(Math.random())).z+=2;
-			if (!particles.children.some(el=>el.position.distanceTo(pos)<.2+pos.z*.1)) break;
+			if (!particles.children.some(el=>el.position.distanceTo(pos)<.17+pos.z*.1)) break;
 			pos=0;
 		}
 		if (!pos) break;
@@ -173,7 +173,7 @@ THREE.Material.prototype.setUniform=function(uName, value){
 	this._uniforms.setValue(gl, uName, value)
 }
 
-Stick=new THREE.Mesh(new THREE.CylinderBufferGeometry(.025, .025, 1, 6), material);
+Stick=new THREE.Mesh(new THREE.CylinderBufferGeometry(.032, .032, 1, 6), material);
 Stick.geometry.translate(0, .5, 0);
 
 function addParticle(pos) {
@@ -182,9 +182,12 @@ function addParticle(pos) {
 	particle.rotation.set(Math.random()*PI, Math.random()*PI, Math.random()*PI);
 	particle.scale.setScalar(particle.size=Math.randFloat(.1, .2));
 
-	particle.targ=vec3(0, 0, Math.randFloat(2.3, 3));
-	particle.v=pos.clone().sub(targ).setLength( Math.randFloat(.0004, .0005));
+	particle.targ=vec3(0, 0, Math.randFloat(2.5, 4));
+	particle.v=pos.clone().sub(particle.targ);
+	if (particle.v.z<1) particle.v=vec3(0,0,Math.randFloat(.0003, .0006))
+	else particle.v.setLength( Math.randFloat(.0003, .0006));
 	particles.add(particle);
+	particle.targ.z-=1
 	return particle;
 };
 
@@ -192,7 +195,7 @@ let targ=particles.targ=vec3(0,0,2);//3.5);
 renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
 let gl=renderer.getContext();
 
-let dt,	creatFigure=4000, gIndex=0;
+let dt,	creatFigure=1000, gIndex=0;
 function animate() {
 
 	requestAnimationFrame( animate );
@@ -203,7 +206,8 @@ function animate() {
 	dt = Math.min(dt, dMax);
 	t0 = t;
 
-	time += dt * speed;
+	//time += dt * speed;
+	dt*=1.5;
 	//updateBlobs( effect, time );
 
 	const dist=2;
@@ -221,34 +225,35 @@ function animate() {
 		}
 		if (p.isTransformer) {
 			let stage=p.parent.stage, z=p.position.z-p.z0;
-			//anim.step(2, p.position.z<-3);
-			p.position.z-=Math.clamp((stage-.9)*.03, 0, .002)
-			 *Math.smoothstep(Math.abs(z+3.6)*stage/1.5,-.14, .55)*dt;
-			anim.step(1, stage>.99||z);
-			p.rotateOnAxis(p.axis0, dt*.0025*Math.min(stage, .1/(-z+.2)+.12));
+			p.position.z-= Math.clamp((stage-.98)*.05, 0, .002)*dt
+			 *Math.smoothstep(Math.abs(z+3.6)*stage/1.5,-.28, 1.6);
+			if (anim.step(1, stage>.99||z<0)) creatFigure++;
+			p.rotateOnAxis(p.axis0, dt*.0026*Math.min(stage, .1/(-z+.2)+.12));
 			p.axis0.lerp(p.up, dt*.0003).normalize();
 		}
 		if (p.doTransform) p.doTransform();
 		if (!p.isParticle) return;
 		targ.copy(p.targ).applyMatrix4(p.targMatrix);
 		let st0=p.stage;
-		if (anim.stage ) p.stage+=(p.sV=Math.lerp(p.sV, .001, 0.005*dt))*dt;
-		else p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1)*1.05, p.stage);
-		let stage=Math.min(p.stage, 1);
+		if (anim.stage ) p.stage+=(p.sV=Math.lerp(p.sV, .0005, 0.001*dt))*dt;
+		else if (p.position.z<p.pos0.z) p.stage=Math.max(Math.mapLinear(p.position.z, p.pos0.z, targ.z, 0, 1)*1.05, p.stage)
+		else p.v.z+=dt*.0000005;
+		let stage=Math.min(p.stage, 1), stage2=stage*stage;
 		p.parent.stage=Math.min(p.parent.stage, p.stage);
 
 		//anim.step(3, p.position.z<-3.2);
-		p.position.addScaledVector(p.v, -dt*(1-stage*stage)).lerp(targ, .0018*dt*stage);
-		p.scale.setScalar(Math.lerp(p.size, .11, stage*stage));
+		p.position.addScaledVector(p.v, -dt*(1-stage2)).lerp(targ, .0018*dt*(2-stage)*stage2);
+		p.scale.setScalar(Math.lerp(p.size, .13, stage2));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 4.3));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 5));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
 		p.position.addScaledVector(p.v, -dt);
 		let z=p.position.z, z1=p.targ.z,
-			sphere=1-Math.smoothstep(z, 3, 6);
+			sphere=1-Math.smoothstep(z-z1, 1, 3);
+		if (z<5) p.v.z+=.000001*z;
 
 		p.morphTargetInfluences[0] = sphere;
 		p.scale.setScalar(Math.lerp(p.size, .1, sphere)*Math.smoothstep(z, z1-1.5, z1+.7));
@@ -257,7 +262,7 @@ function animate() {
 		//this.morphTargetInfluences[0]=inp.value
 		testPos=testPos||(p.position.z>pos.z-dist && pos.distanceTo(p.position)<dist);
 	});
-	if ( (creatFigure+=dt)>5500) {
+	if ( creatFigure && (creatFigure+=dt)>3000) {
 		gIndex+=1;
 		gIndex%=targGeometrys.length;
 
@@ -270,8 +275,9 @@ function animate() {
 		fig0.isTransformer=true;
 		figure.transformer=fig0;
 		fig0.axis0=vec3(1, Math.random()*.5, 0).rotate(0,Math.random()*PI*2,0).normalize();
-		fig0.position.z=fig0.z0=-.23;
+		fig0.position.z=fig0.z0=-.19;
 		if (!gIndex) fig0.up.set(1,1,1).normalize();
+		fig0.scale.multiplyScalar(1.2);
 		//fig0.add(new THREE.ArrowHelper(fig0.up));
 
 		fig0.count=targGeometrys[gIndex].vertices.length;
@@ -279,14 +285,15 @@ function animate() {
 		let hue0=Math.random();
 
 		particles.children.sort((p1,p2)=>p1.position.z-p2.position.z);
-		let first=particles.children.findIndex(p=>p.position.z>2);
-		if (particles.children[first].position.z>2.1) first--;
+		let first=particles.children.findIndex(p=>p.position.z>1.7);
+		if (first&&particles.children[first].position.z>1.8) first--;
 		particles.children.splice(first, fig0.count).forEach((p,i)=>{
 			//console.log(i)
 			figure.add(p);
 			p.name='particle';
 			p.targ=targGeometrys[gIndex].vertices[i].clone();
 			p.pos0=p.position.clone();
+			p.pos0.z=Math.min(p.pos0.z, 1.6);
 			p.size=p.scale.z;
 			p.targMatrix=fig0.matrix;
 			p.isParticle=true;
@@ -314,9 +321,8 @@ function animate() {
 				ab=vec3();
 			stick.scale.y=0;
 			stick.doTransform=function() {
-				let stage=Math.min(p1.stage+p2.stage, 1.95)/1.95;
-				stage*=stage*stage;
-				let scale=(stage*stage*3+1)%2-1;
+				let stage=(p1.stage+p2.stage+figure.stage*2)/4.12;
+				let scale=+stage>1||(Math.pow(stage,15)*3+1)%2-1;
 				//if (!stick.scale.y) console.log(p1.stage, p2.stage, scale);
 				ab.subVectors(b,a);
 				stick.scale.y=ab.length()*scale;
@@ -324,8 +330,8 @@ function animate() {
 				stick.position.copy(scale>0?a:b)
 			};
 			stick.onBeforeRender=function(){
-				material.updateUniforms[0][1]=p2.color;
-				material.updateUniforms[1][1]=p1.color;
+				material.updateUniforms[0][1]=p1.color;
+				material.updateUniforms[1][1]=p2.color;
 			}
 			figure.add(stick);
 		})
