@@ -145,18 +145,18 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 
 		let captions=document.querySelectorAll('.captions div');
 		setElPos(captions[0], 4);
-		setElPos(captions[1], .5);
-		setElPos(captions[2], -2.5);
-		setElPos(captions[3], -5);
+		setElPos(captions[1], 0.1);
+		setElPos(captions[2], -3.4);
+		setElPos(captions[3], -5, -.6, true);
 	} )();
 
 	requestAnimationFrame( animate );
 	document.querySelector('._3d').style.opacity=1
 });
-export function setElPos(el, x, y=0.6) {
+export function setElPos(el, x, y=0.6, inv) {
 	let scrPos=particles.localToWorld(vec3(0, y, x)).project(camera);
-	el.style.left=50+scrPos.x*50+'%';
-	el.style.bottom=50+scrPos.y*50+'%'
+	el.style[inv?'right':'left']=50+scrPos.x*50*(!inv||-1)+'%';
+	el.style[inv?'top':'bottom']=50+scrPos.y*50*(!inv||-1)+'%'
 }
 
 export let color0=new THREE.Color(6642505),
@@ -262,7 +262,7 @@ function animate() {
 		p.scale.setScalar(Math.lerp(p.size, .13, stage2));
 		p.morphTargetInfluences[0] = Math.lerp(p.morphTargetInfluences[0], 1, stage);
 
-		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 3, 5));
+		p.color.lerp(p.color1, Math.smoothstep(-p.position.z, 2.8, 4.6));
 	});
 	particles.children.forEach(p=>{
 		//p.v.clone().cross()
