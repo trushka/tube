@@ -1,11 +1,12 @@
 import './three.min.js';
 import './GLTFLoader.js';
+import './CSS3DRenderer.js';
 import {vec3} from './threeCustom.js'; export {vec3};
 import {geometries} from './geometries.js'; export {geometries};
 
 export let camera, scene, renderer,
 	canvas = document.querySelector('canvas.renderer');
-export let geometry, material, Stick,
+export let geometry, material, Stick, plane,
 	light, light1, hLight, 
 	rings=[], ringMatireal, tube, effect, pMaterial,
 	particles=new THREE.Group(), figures=new THREE.Group(),
@@ -86,7 +87,15 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 			tube.position.set(0,0,0);
 			tube.rotation.set(0,0,0);
 		};
-	})
+	});
+
+	plane=new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({
+		map: new THREE.TextureLoader().load( "img/front.svg" ),
+		transparent: true
+	}));
+	plane.matrix.fromArray([0, 0, -10, 0, 0, 1.5, 0, 0, 1.9, 0, 0, 0, 1.145, -0.7, -0.7, 1]);
+	plane.matrixAutoUpdate = false;
+	scene.add(plane);
 
 	// generate particles
 
@@ -113,12 +122,6 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	envMap.encoding=THREE.GammaEncoding;
 	//material = new THREE.MeshPhongMaterial( { emissive: 0xffffff, envMap: envMap } );
 
-	//   effect = new THREE.MetaBalls( envMap, camera, blobs, maxBlobs, Object.assign(renderer.getDrawingBufferSize(), {w:2, h:1}) );
-	// effect.position.set( -450, -450, -450 );
-	//   effect.scale.multiplyScalar( 1.2 );
-	//   effect.position.set(0, 0.55, -0.5);
-	//scene.add( effect );
-
 	light = scene.getObjectByName('Sun_Orientation');
 	light.intensity=.3;
 	light.rotation.y=-.95;
@@ -132,16 +135,28 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	hLight.groundColor.multiplyScalar(-1);
 	hLight.position.set(1,1,3);
 
+	scene.updateMatrixWorld();
 	(window.onresize = function () {
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
 		camera.aspect = canvas.width / canvas.height;
 		camera.zoom=Math.min(1, camera.aspect);
 		camera.updateProjectionMatrix();
+
+		let captions=document.querySelectorAll('.captions div');
+		setElPos(captions[0], 4);
+		setElPos(captions[1], .5);
+		setElPos(captions[2], -2.5);
+		setElPos(captions[3], -5);
 	} )();
 
 	requestAnimationFrame( animate );
 });
+export function setElPos(el, x, y=0.6) {
+	let scrPos=particles.localToWorld(vec3(0, y, x)).project(camera);
+	el.style.left=50+scrPos.x*50+'%';
+	el.style.bottom=50+scrPos.y*50+'%'
+}
 
 export let color0=new THREE.Color(6642505),
 	color1=color0.clone();
@@ -207,7 +222,7 @@ function animate() {
 	t0 = t;
 
 	//time += dt * speed;
-	dt*=1.5;
+	dt*=2;
 	//updateBlobs( effect, time );
 
 	const dist=2;

@@ -11,20 +11,54 @@
 				color: hsl(0deg 0% 100%);
 				margin: 0px;
 				height: 200%;
+				font-family: Lato,sans-serif;
 			}
-			.renderer {
+			._3d {
 				position:fixed;
 				left: 0;
 				top:0;
 				width: 100%;
 				height: 100vh;
 				margin: 0;
+			}
+			.renderer {
+				position: absolute;
 				overflow: hidden;
+				width: 100%;
+				height: 100%;
+			}
+			.captions div {
+				position: absolute;
+				color: #fff;
+				z-index: 1;
+			}
+			.captions div::after {
+				font-size: .5em;
+				content: '';
+				height: 15em;
+				display: block;
+				margin-top: 1em;
+				width: 2em;
+				background: linear-gradient(transparent 80%, #bbb 80%) top center/.2em 1em repeat-y;
+				box-shadow: #eeb 0 -.2em;
+				max-height: 20vh;
+			}
+			.captions div:nth-of-type(4)::after {
+				height: 6em;
+				max-height: 8vh;
 			}
 		</style>
 	</head>
 	<body>
-		<canvas class="renderer"></canvas>
+		<div class="_3d">
+			<div class="captions">
+				<div>Ingest and Transform <br>Data from Any Source</div>
+				<div>Train and Evaluate <br>Models at Scale</div>
+				<div>Deploy with ease to an <br>Operational Pipeline</div>
+				<div>Monitor Models and <br>Detect Drift in Real Time</div>
+			</div>
+			<canvas class="renderer"></canvas>
+		</div>
 		<script type="module">
 			import * as _3d from './js/tube.js';
 			setTimeout(()=>Object.assign(window,_3d), 300) //для отладки, на продакшене можно просто <script type="module" src="./js/tube.js">
