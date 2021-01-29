@@ -1,6 +1,6 @@
 import './three.min.js';
 import './GLTFLoader.js';
-import './CSS3DRenderer.js';
+//import './CSS3DRenderer.js';
 import {vec3} from './threeCustom.js'; export {vec3};
 import {geometries} from './geometries.js'; export {geometries};
 
@@ -151,6 +151,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	} )();
 
 	requestAnimationFrame( animate );
+	document.querySelector('._3d').style.opacity=1
 });
 export function setElPos(el, x, y=0.6) {
 	let scrPos=particles.localToWorld(vec3(0, y, x)).project(camera);
