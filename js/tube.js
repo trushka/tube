@@ -140,13 +140,16 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
 		camera.aspect = canvas.width / canvas.height;
-		camera.zoom=Math.min(1, camera.aspect);
+		camera.zoom=Math.min(Math.smoothstep(camera.aspect, 1, 3)*.3+1, camera.aspect);
 		camera.updateProjectionMatrix();
 
-		let captions=document.querySelectorAll('.captions div');
+		const isNarrow=camera.aspect<1.15,
+		 captions=document.querySelectorAll('.captions div');
+
+		document.querySelector('.captions').classList[isNarrow?'add':'remove']('narrow');
 		setElPos(captions[0], 4);
-		setElPos(captions[1], 0.1);
-		setElPos(captions[2], -3.4);
+		setElPos(captions[1], isNarrow?[-0.3, -.6, true]:0.1);
+		setElPos(captions[2], isNarrow?-3.8:-3.4);
 		setElPos(captions[3], -5, -.6, true);
 	} )();
 
@@ -154,9 +157,11 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	document.querySelector('._3d').style.opacity=1
 });
 export function setElPos(el, x, y=0.6, inv) {
+	if (isNaN(x)) [x,y,inv]=x;
 	let scrPos=particles.localToWorld(vec3(0, y, x)).project(camera);
-	el.style[inv?'right':'left']=50+scrPos.x*50*(!inv||-1)+'%';
-	el.style[inv?'top':'bottom']=50+scrPos.y*50*(!inv||-1)+'%'
+	el.style.cssText=
+	`${inv?'right':'left'}: ${50+scrPos.x*50*(!inv||-1)}%;
+	 ${inv?'top':'bottom'}: ${50+scrPos.y*50*(!inv||-1)}%`
 }
 
 export let color0=new THREE.Color(6642505),

@@ -37,35 +37,52 @@
 				position: absolute;
 				color: #fff;
 				z-index: 1;
+				font-size: calc(min(1em, 3.8vmin));
+				margin: 0 -0.5em;
 			}
 			.captions div::after,
-			.captions div:last-of-type::before {
+			.captions div:last-of-type::before,
+			.captions.narrow div:nth-child(2)::before {
 				font-size: .5em;
 				content: '';
-				height: 15em;
+				/* height: 11em; */
 				display: block;
-				margin: 1em 0 0;
+				margin: .7em 0 0;
 				width: 2em;
 				background: linear-gradient(transparent 80%, #bbb 80%) top center/.2em 1em repeat-y;
-				box-shadow: #eeb 0 -0.3em 0 -.05em;
-				max-height: 20vh;
+				max-height: 17vh;
+				height: 22vw;
+				border-top: .3em solid #eeb;
 			}
-			.captions div:last-of-type::after {
+			.captions div:last-of-type::after,
+			.captions.narrow div:nth-child(2)::after {
 				/*height: 6em;
 				max-height: 8vh;*/
 				content: none;
 			}
-			.captions div:last-of-type {
+			.captions div:last-of-type,
+			.captions.narrow div:nth-child(2) {
 				direction: rtl;
 				/* transform: translate(-100%, 100%); */
-				mix-blend-mode: darken;
+				mix-blend-mode: overlay;
 			}
-			.captions div:last-of-type::before {
-				height: 30em;
-				max-height: 23vh;
+			.captions.narrow div:nth-child(3) {
+				direction: rtl;
+				transform: translateX(-100%);
+				white-space: nowrap;
+			}
+			.captions div:last-of-type::before,
+			.captions.narrow div:nth-child(2)::before {
+				height: 27vw;
+				max-height: 28vh;
 				transform: scaleY(-1);
-				margin: 0 0 1em;
-				/* mix-blend-mode: color-dodge; */
+				margin: 0 0 0.7em;
+			}
+			.captions:not(.narrow) div:last-of-type br:nth-child(2n+1) {
+				display: none;
+			}
+			.captions.narrow div:last-of-type br:nth-child(2) {
+				display: none;
 			}
 		</style>
 	</head>
@@ -75,7 +92,7 @@
 				<div>Ingest and Transform <br>Data from Any Source</div>
 				<div>Train and Evaluate <br>Models at Scale</div>
 				<div>Deploy with ease to an <br>Operational Pipeline</div>
-				<div>Monitor Models and <br>Detect Drift in Real Time</div>
+				<div>Monitor Models<br> and <br>Detect Drift<br> in Real Time</div>
 			</div>
 			<canvas class="renderer"></canvas>
 		</div>
