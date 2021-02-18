@@ -8,8 +8,8 @@
 			html {height: 100%}
 			body {
 				background: #2a2e45;
-				/* background: radial-gradient(ellipse 50vw 50vmin at 53% 55%, #020724, transparent); */
-				color: hsl(0deg 0% 100%);
+				/* background: radial-gradient(ellipse 50vw 50vmin at 53% 55%, #0e1017, transparent); */
+				color: #ffffff;
 				margin: 0px;
 				height: 200%;
 				font-family: Lato,sans-serif;
@@ -33,12 +33,15 @@
 				height: 100%;
 				/* filter: drop-shadow(2px 4px 10px #2a2e45); */
 			}
-			.renderer-bg {
-			filter: blur(25px);
+			body:target .renderer-bg {
+				filter: blur(9vmin);
+			}
+			body:not(:target) .renderer-bg {
+				display: none;
 			}
 			.captions {
-				/* mix-blend-mode: darken; */
-				/* filter: invert(1); */
+				/* filter: invert(1); 
+				isolation: isolate;*/
 			}
 			.captions div {
 				position: absolute;
@@ -49,6 +52,7 @@
 			}
 			body:target .captions div {
 				filter: invert(.8);
+				mix-blend-mode: multiply !important;
 			}
 			.captions div::after,
 			.captions div:last-of-type::before,
