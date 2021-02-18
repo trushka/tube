@@ -4,8 +4,14 @@ import './GLTFLoader.js';
 import {vec3} from './threeCustom.js'; export {vec3};
 import {geometries} from './geometries.js'; export {geometries};
 
-export let camera, scene, renderer,
-	canvas = document.querySelector('canvas.renderer');
+export let camera, cameraBg, scene, sceneBg,
+	container=document.querySelector('._3d'),
+	canvas = document.querySelector('canvas.renderer'),
+	canvasBg = document.querySelector('canvas.renderer-bg'),
+
+	renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} ),
+	rendererBg = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvasBg} );
+
 export let geometry, material, Stick, plane,
 	light, light1, hLight, 
 	rings=[], ringMatireal, tube, effect, pMaterial,
@@ -53,6 +59,8 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	scene = obj.scene;
 	scene.getObjectByName('Plane001').visible=false;
 
+	const material=new THREE.MeshBasicMaterial({color:'#2a2e45', side:THREE.DoubleSide})
+
 	scene.traverse(el=>{
 		if (!el.isMesh) return;
 		el.geometry.computeVertexNormalsFine();
@@ -88,6 +96,13 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 			tube.rotation.set(0,0,0);
 		};
 	});
+	sceneBg=scene.clone();
+	sceneBg.traverse(el=>{
+		if (el.isCamera) cameraBg=el;
+		if (!el.isMesh) return;
+		el.material=material;
+	});
+	cameraBg.projectionMatrix=camera.projectionMatrix;
 
 	plane=new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({
 		map: new THREE.TextureLoader().load( "img/front.svg" ),
@@ -139,9 +154,12 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	(window.onresize = function () {
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
+		rendererBg.setPixelRatio( window.devicePixelRatio );
+		rendererBg.setSize( canvas.offsetWidth, canvas.offsetHeight, false );
 		camera.aspect = canvas.width / canvas.height;
 		camera.zoom=Math.min(Math.smoothstep(camera.aspect, 1, 3)*.3+1, camera.aspect);
 		camera.updateProjectionMatrix();
+		rendererBg.render(sceneBg, cameraBg);
 
 		const isNarrow=camera.aspect<1.15,
 		 captions=document.querySelectorAll('.captions div');
@@ -154,7 +172,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	} )();
 
 	requestAnimationFrame( animate );
-	document.querySelector('._3d').style.opacity=1
+	container.style.opacity=1;
 });
 export function setElPos(el, x, y=0.6, inv) {
 	if (isNaN(x)) [x,y,inv]=x;
@@ -213,7 +231,6 @@ function addParticle(pos) {
 };
 
 let targ=particles.targ=vec3(0,0,2);//3.5);
-renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} );
 let gl=renderer.getContext();
 
 let dt,	creatFigure=1000, gIndex=0;
@@ -228,7 +245,7 @@ function animate() {
 	t0 = t;
 
 	//time += dt * speed;
-	dt*=2;
+	dt*=2.5;
 	//updateBlobs( effect, time );
 
 	const dist=2;
