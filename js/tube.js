@@ -104,12 +104,6 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	});
 	cameraBg.projectionMatrix=camera.projectionMatrix;
 
-	plane=new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({
-		map: new THREE.TextureLoader().load( "img/front.svg" ),
-		transparent: true
-	}));
-	plane.matrix.fromArray([0, 0, -10, 0, 0, 1.5, 0, 0, 1.9, 0, 0, 0, 1.145, -0.7, -0.7, 1]);
-	plane.matrixAutoUpdate = false;
 	scene.add(plane);
 
 	// generate particles
@@ -164,7 +158,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 		const isNarrow=camera.aspect<1.15,
 		 captions=document.querySelectorAll('.captions div');
 
-		document.querySelector('.captions').classList[isNarrow?'add':'remove']('narrow');
+		document.querySelector('.captions')?.classList[isNarrow?'add':'remove']('narrow');
 		setElPos(captions[0], 4);
 		setElPos(captions[1], isNarrow?[-0.3, -.6, true]:0.1);
 		setElPos(captions[2], isNarrow?-3.8:-3.4);
@@ -174,7 +168,15 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	requestAnimationFrame( animate );
 	container.style.opacity=1;
 });
+plane=new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({
+	map: new THREE.TextureLoader().load( "img/front.svg" ),
+	transparent: true
+}));
+plane.matrix.fromArray([0, 0, -10, 0, 0, 1.5, 0, 0, 1.9, 0, 0, 0, 1.145, -0.7, -0.7, 1]);
+plane.matrixAutoUpdate = false;
+
 export function setElPos(el, x, y=0.6, inv) {
+	if (!el) return;
 	if (isNaN(x)) [x,y,inv]=x;
 	let scrPos=particles.localToWorld(vec3(0, y, x)).project(camera);
 	el.style.cssText=

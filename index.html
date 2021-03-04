@@ -7,14 +7,13 @@
 		<style>
 			html {height: 100%}
 			body {
-				background: #2a2e45;
+				background: none;
 				/* background: radial-gradient(ellipse 50vw 50vmin at 53% 55%, #0e1017, transparent); */
 				color: #ffffff;
 				margin: 0px;
 				height: 200%;
 				font-family: Lato,sans-serif;
 			}
-			body:target {background: none}
 			._3d {
 				position:fixed;
 				left: 0;
@@ -26,6 +25,8 @@
 				transition: opacity .7s;
 				isolation: isolate;
 			}
+			body:not(:target) ._3d {background: #2a2e45}
+			
 			.renderer, .renderer-bg {
 				position: absolute;
 				overflow: hidden;
