@@ -104,7 +104,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	});
 	cameraBg.projectionMatrix=camera.projectionMatrix;
 
-	scene.add(plane);
+	//scene.add(plane);
 
 	// generate particles
 
@@ -169,7 +169,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	container.style.opacity=1;
 });
 plane=new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({
-	map: new THREE.TextureLoader().load( "img/front.svg" ),
+	//map: new THREE.TextureLoader().load( "img/front.svg" ),
 	transparent: true
 }));
 plane.matrix.fromArray([0, 0, -10, 0, 0, 1.5, 0, 0, 1.9, 0, 0, 0, 1.145, -0.7, -0.7, 1]);
