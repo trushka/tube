@@ -147,9 +147,7 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 	scene.updateMatrixWorld();
 	(window.onresize = function () {
 		const box=canvas.getBoundingClientRect(),
-		 captions=document.querySelectorAll('.captions div'),
-		 box1=captions[1].getBoundingClientRect();
-
+		 captions=document.querySelectorAll('.captions div');
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( box.width, box.height, false );
 		rendererBg.setPixelRatio( window.devicePixelRatio );
@@ -159,7 +157,10 @@ new THREE.GLTFLoader().load('tube.glb', function(obj){
 		camera.updateProjectionMatrix();
 		rendererBg.render(sceneBg, cameraBg);
 
-		const isNarrow=box1.width/box.height/camera.zoom>.22 || camera.aspect<1.2;
+		if (!captions[0]) return;
+		const
+		 box1=captions[1].getBoundingClientRect(),
+		 isNarrow=box1.width/box.height/camera.zoom>.22 || camera.aspect<1.2;
 		document.querySelector('.captions')?.classList[isNarrow?'add':'remove']('narrow');
 		setElPos(captions[0], 4);
 		setElPos(captions[1], isNarrow?[-0.3, -.6, true]:0.1);

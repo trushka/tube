@@ -1,9 +1,11 @@
+
 html {height: 100%}
 body {
 	background: none;
 	/* background: radial-gradient(ellipse 50vw 50vmin at 53% 55%, #0e1017, transparent); */
 	color: #ffffff;
 	margin: 0px;
+	height: 200%;
 	font-family: Lato,sans-serif;
 }
 ._3d {
@@ -17,8 +19,6 @@ body {
 	transition: opacity .7s;
 	isolation: isolate;
 }
-body:not(:target) ._3d {background: #2a2e45}
-
 .renderer, .renderer-bg {
 	position: absolute;
 	overflow: hidden;
@@ -26,11 +26,10 @@ body:not(:target) ._3d {background: #2a2e45}
 	height: 100%;
 	/* filter: drop-shadow(2px 4px 10px #2a2e45); */
 }
-body:target .renderer-bg {
+.renderer-bg {
 	filter: blur(9vmin);
 }
 body:not(:target) .renderer-bg {
-	display: none;
 }
 .captions {
 	/* filter: invert(1); 
@@ -38,14 +37,14 @@ body:not(:target) .renderer-bg {
 }
 .captions div {
 	position: absolute;
-	color: #fff;
+	color: #111;
 	z-index: 1;
-	font-size: calc(min(1em, 3.8vmin));
+	font-size: calc(min(1.08em, 3.8vmin));
 	margin: 0 -0.5em;
 }
-body:target .captions div {
-	filter: invert(.8);
-	mix-blend-mode: multiply !important;
+.captions div {
+	text-shadow: 0 0 0.03em #0004;
+	mix-blend-mode: darken;
 }
 .captions div::after,
 .captions div:last-of-type::before,
@@ -56,10 +55,10 @@ body:target .captions div {
 	display: block;
 	margin: .7em 0 0;
 	width: 2em;
-	background: linear-gradient(transparent 80%, #bbb 80%) top center/.2em 1em repeat-y;
+	background: linear-gradient(transparent 80%, #444 80%) top center/.2em 1em repeat-y;
 	max-height: 17vh;
 	height: 22vw;
-	border-top: .3em solid #eeb;
+	border-top: .3em solid #534937;
 }
 .captions div:last-of-type::after,
 .captions.narrow div:nth-child(2)::after {
