@@ -18,6 +18,8 @@ export const PI=Math.PI,
 
 	renderer = new THREE.WebGLRenderer( {alpha:true, antialias: true, canvas:canvas} ),
 	camera=new THREE.PerspectiveCamera( 20, 1, .1, 100 ),
+	camPos0=vec3(0,3,5),
+
 	cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 512, {
 	 format: THREE.RGBAFormat,
 	 generateMipmaps: true,
@@ -34,13 +36,10 @@ bgScene.add( cubeCamera );
 cubeCamera.update( renderer, bgScene );
 hLight.position.set(1,1,0);
 
-
-camera.position.set(0,3,5);
-camera.lookAt(0,0,0);
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .05).texture;
 
 scene.add(balls, satellites, hLight);
-balls.rotation.set( 3.3,0.2,0);
+balls.rotation.x=-.4;//set( 3.3,0.2,0);
 satellites.rotation.set( 6, -.3,0);
 
 geometry.vertices.forEach(v=>{
@@ -56,7 +55,7 @@ for (var i = 0; i < 3; i++) {
 	satellites.add(ball);
 }
 
-let t0 = performance.now(), dMax = 80, dMin = 1000/60;
+let t0 = performance.now(), dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), y0;
 
 renderer.setAnimationLoop(function(){
 	if (!scene) return;
@@ -74,7 +73,9 @@ renderer.setAnimationLoop(function(){
 	satellites.children.forEach(ball=>{
 		ball.position.applyAxisAngle(ball._axis, -dt*.003)
 	})
-	balls.rotateY(dt*.0005); 
+	balls.rotateY(-dt*.0005);
+	camera.position.copy(camPos0).applyAxisAngle(camAxis, -(rect.top+rect.height-innerHeight/2)/innerHeight),
+	camera.lookAt(0,0,0);
 	renderer.render(scene, camera)
 	//console.log('r')
 })
