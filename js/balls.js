@@ -74,7 +74,9 @@ renderer.setAnimationLoop(function(){
 		ball.position.applyAxisAngle(ball._axis, -dt*.003)
 	})
 	balls.rotateY(-dt*.0005);
-	camera.position.copy(camPos0).applyAxisAngle(camAxis, -(rect.top+rect.height-innerHeight/2)/innerHeight),
+	let bias=-(rect.top+rect.height-innerHeight/2)/innerHeight
+	camera.position.copy(camPos0).applyAxisAngle(camAxis, bias),
+	canvas.style.transform=`translateY(${-bias*8}vh)`;
 	camera.lookAt(0,0,0);
 	renderer.render(scene, camera)
 	//console.log('r')
