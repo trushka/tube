@@ -4,7 +4,7 @@
 		<title>AID-Tes</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<link rel="stylesheet" type="text/css" href="style.css?v2">
 	</head>
 	<body id="transparent">
 		<div class="_3d">
@@ -19,8 +19,8 @@
 		</div>
 		<canvas class='balls'></canvas>
 		<script type="module">//для отладки, на продакшене можно просто <script type="module" src="./js/tube.js">
-			import * as TUBE from './js/tube.js';
-			import * as BALLS from './js/balls.js?v1';
+			import * as TUBE from './js/tube.js?v2';
+			import * as BALLS from './js/balls.js?v2';
 			window.setGlobal=function(obj){Object.assign(window, obj)};
 			Object.assign(window, {BALLS, TUBE})
 		</script>

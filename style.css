@@ -2,7 +2,7 @@
 html {/* height: 100%; */}
 body {
 	/* background: none; */
-	background: radial-gradient(ellipse 200vmax 273vh at 50% -22vh, #000, #000 calc(50% + -2px), #fff 50%, #fff) no-repeat;
+	background: radial-gradient(ellipse 200vmax 200vh at 50% 17vh, #000, #000 calc(50% + -2px), #fff 50%, #fff) no-repeat;
 	color: #ffffff;
 	margin: 0px;
 	height: 300vh;
@@ -94,8 +94,10 @@ body:not(:target) .renderer-bg {
 .balls{
 	position: absolute;
 	/* outline: 1px solid; */
-	width: 300px;
-	height: 300px;
+	--size: min(300px, 35vw);
+	width: var(--size);
+	height: var(--size);
 	right: 10vw;
-	top: 88vh;
+	top: calc(118vh - 4vw - var(--size) * 0.5);
+	will-change: transform;
 }

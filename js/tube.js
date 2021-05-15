@@ -245,13 +245,16 @@ function animate() {
 
 	var t = performance.now();
 	dt = t-t0;
-	if (dt<dMin) return; // !Eh || 
+	//if (dt<dMin) return; // !Eh || 
 	dt = Math.min(dt, dMax);
 	t0 = t;
 
 	//time += dt * speed;
 	dt*=2.5;
 	//updateBlobs( effect, time );
+	
+	const rect = canvas.getBoundingClientRect();
+	if (rect.top>innerHeight || rect.bottom<0) return
 
 	const dist=2;
 	
