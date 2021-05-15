@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Всем ТРУБА!!!111</title>
+		<title>AID-Tes</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link rel="stylesheet" type="text/css" href="style.css">
@@ -17,9 +17,12 @@
 			</div>
 			<canvas class="renderer"></canvas>
 		</div>
-		<script type="module">
-			import * as _3d from './js/tube.js';
-			setTimeout(()=>Object.assign(window,_3d), 300) //для отладки, на продакшене можно просто <script type="module" src="./js/tube.js">
+		<canvas class='balls'></canvas>
+		<script type="module">//для отладки, на продакшене можно просто <script type="module" src="./js/tube.js">
+			import * as TUBE from './js/tube.js';
+			import * as BALLS from './js/balls.js';
+			window.setGlobal=function(obj){Object.assign(window, obj)};
+			Object.assign(window, {BALLS, TUBE})
 		</script>
 	</body>
 </html>

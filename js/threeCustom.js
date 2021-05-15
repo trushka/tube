@@ -1,7 +1,7 @@
 //import {} from './three.min.js';
 Object.assign(window.Math, THREE.Math);
 
-export let vec3=function(x,y,z) {return new THREE.Vector3(x,y,z)};
+export const vec3=function(x,y,z) {return new THREE.Vector3(x,y,z)};
 
 THREE.Vector3.prototype.rotate=function(x,y,z,t){
 	return this.applyEuler(new THREE.Euler(x,y,z,t))

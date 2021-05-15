@@ -1,15 +1,15 @@
 
-html {height: 100%}
+html {/* height: 100%; */}
 body {
-	background: none;
-	/* background: radial-gradient(ellipse 50vw 50vmin at 53% 55%, #0e1017, transparent); */
+	/* background: none; */
+	background: radial-gradient(ellipse 200vmax 273vh at 50% -22vh, #000, #000 calc(50% + -2px), #fff 50%, #fff) no-repeat;
 	color: #ffffff;
 	margin: 0px;
-	height: 200%;
+	height: 300vh;
 	font-family: Lato,sans-serif;
 }
 ._3d {
-	position:fixed;
+	position: absolute;
 	left: 0;
 	top:0;
 	width: 100%;
@@ -37,7 +37,7 @@ body:not(:target) .renderer-bg {
 }
 .captions div {
 	position: absolute;
-	color: #111;
+	/* color: #111; */
 	z-index: 1;
 	font-size: calc(min(1.08em, 3.8vmin));
 	margin: 0 -0.5em;
@@ -55,7 +55,7 @@ body:not(:target) .renderer-bg {
 	display: block;
 	margin: .7em 0 0;
 	width: 2em;
-	background: linear-gradient(transparent 80%, #444 80%) top center/.2em 1em repeat-y;
+	background: linear-gradient(transparent 80%, hsl(0deg 0% 66%) 80%) top center/.2em 1em repeat-y;
 	max-height: 17vh;
 	height: 22vw;
 	border-top: .3em solid #534937;
@@ -70,7 +70,7 @@ body:not(:target) .renderer-bg {
 .captions.narrow div:nth-child(2) {
 	direction: rtl;
 	/* transform: translate(-100%, 100%); */
-	mix-blend-mode: overlay;
+	mix-blend-mode: ;
 }
 .captions.narrow div:nth-child(3) {
 	direction: rtl;
@@ -89,4 +89,13 @@ body:not(:target) .renderer-bg {
 }
 .captions.narrow div:last-of-type br:nth-child(2) {
 	display: none;
+}
+/*   Balls   */
+.balls{
+	position: absolute;
+	outline: 1px solid;
+	width: 300px;
+	height: 300px;
+	right: 10vw;
+	top: 92vh;
 }
