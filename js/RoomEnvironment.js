@@ -61,40 +61,41 @@ function RoomEnvironment() {
 
 
 	// -x right
-	const light1 = new THREE.Mesh( geometry, createAreaLightMaterial( 50 ) );
+	const light1 = new THREE.Mesh( geometry, createAreaLightMaterial( 30 ) );
 	light1.position.set( - 16.116, 14.37, 8.208 );
 	light1.scale.set( 0.1, 2.428, 2.739 );
 	scene.add( light1 );
 
 	// -x left
-	const light2 = new THREE.Mesh( geometry, createAreaLightMaterial( 50 ) );
+	const light2 = new THREE.Mesh( geometry, createAreaLightMaterial( 30 ) );
 	light2.position.set( - 16.109, 18.021, - 8.207 );
 	light2.scale.set( 0.1, 2.425, 2.751 );
 	scene.add( light2 );
 
 	// +x
-	const light3 = new THREE.Mesh( geometry, createAreaLightMaterial( 8 ) );
-	light3.position.set( 14.904, 12.198, - 1.832 );
-	light3.scale.set( 0.15, 14.265, 16.331 );
+	const light3 = new THREE.Mesh( geometry, createAreaLightMaterial( 3.4 ) );
+	light3.position.set( 13, 14,  -4 );
+	light3.scale.set( 0.15, 26, 20 );
+	light3.rotation.set(-.2, -.7, 0)
 	scene.add( light3 );
 
 	// -x horiz
-	const light4 = new THREE.Mesh( geometry, createAreaLightMaterial( 3 ) );
+	const light4 = new THREE.Mesh( geometry, createAreaLightMaterial( 2 ) );
 	light4.position.set( -7, -8, - 3 );
 	light4.rotation.y=.5
 	light4.scale.set( 0.15, 25, 15 );
 	scene.add( light4 );
 
 	// -z
-	const light5 = new THREE.Mesh( geometry, createAreaLightMaterial( 20 ) );
-	light5.position.set( 3.235, 11.486, - 12.541 );
-	light5.scale.set( 2.5, 2.0, 0.1 );
+	const light5 = new THREE.Mesh( geometry, createAreaLightMaterial( 55 ) );
+	light5.position.set( 14, 7, - 11 );
+	light5.scale.set( 1, 1.5, 0.1 );
 	scene.add( light5 );
 
-	// +y
-	const light6 = new THREE.Mesh( geometry, createAreaLightMaterial( 100 ) );
-	light6.position.set( 0.0, 20.0, 0.0 );
-	light6.scale.set( 1.0, 0.1, 1.0 );
+	// -y
+	const light6 = new THREE.Mesh( geometry, createAreaLightMaterial( 1.5 ) );
+	light6.position.set( 1, -3.0, 3.0 );
+	light6.scale.set( 7.0, 0.01, 7.0 );
 	scene.add( light6 );
 
 	function createAreaLightMaterial( intensity ) {

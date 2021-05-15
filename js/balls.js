@@ -7,9 +7,11 @@ export {vec3}
 export const PI=Math.PI,
 	geometry=new THREE.IcosahedronGeometry(.45),
 	r=geometry.vertices[1].clone().sub(geometry.vertices[0]).length()/1.9,
-	material=new THREE.MeshStandardMaterial({roughness: .2, metalness: .1, color: '#56b'}),
+	material=new THREE.MeshStandardMaterial({roughness: .2, metalness: .1, color: '#78f'}),
 	balls=new THREE.Group,
 	satellites=new THREE.Group,
+	hLight=new THREE.HemisphereLight('#fff', 0, .3),
+
 	scene=new THREE.Scene(),
 	canvas = document.querySelector('canvas.balls'),
 	cashed=Object.assign({dpr: devicePixelRatio}, canvas.getBoundingClientRect()),
@@ -29,13 +31,15 @@ export const PI=Math.PI,
 console.log(renderer.capabilities.isWebGL2);
 
 bgScene.add( cubeCamera );
-cubeCamera.update( renderer, bgScene )
+cubeCamera.update( renderer, bgScene );
+hLight.position.set(1,1,0);
+
 
 camera.position.set(0,3,5);
 camera.lookAt(0,0,0);
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .05).texture;
 
-scene.add(balls, satellites);
+scene.add(balls, satellites, hLight);
 balls.rotation.set( 3.3,0.2,0);
 satellites.rotation.set( 6, -.3,0);
 
@@ -70,6 +74,7 @@ renderer.setAnimationLoop(function(){
 	satellites.children.forEach(ball=>{
 		ball.position.applyAxisAngle(ball._axis, -dt*.003)
 	})
+	balls.rotateY(dt*.0005); 
 	renderer.render(scene, camera)
 	//console.log('r')
 })
