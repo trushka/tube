@@ -20,7 +20,7 @@
 		<canvas class='balls'></canvas>
 		<script type="module">//для отладки, на продакшене можно просто <script type="module" src="./js/tube.js">
 			import * as TUBE from './js/tube.js';
-			import * as BALLS from './js/balls.js';
+			import * as BALLS from './js/balls.js?v1';
 			window.setGlobal=function(obj){Object.assign(window, obj)};
 			Object.assign(window, {BALLS, TUBE})
 		</script>
