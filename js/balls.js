@@ -6,7 +6,7 @@ export {vec3}
 
 export const PI=Math.PI,
 	geometry=new THREE.IcosahedronGeometry(.45),
-	r=geometry.vertices[1].clone().sub(geometry.vertices[0]).length()/1.9,
+	r=geometry.vertices[1].clone().sub(geometry.vertices[0]).length()/1.95,
 	material=new THREE.MeshStandardMaterial({roughness: .2, metalness: .1, color: '#78f'}),
 	balls=new THREE.Group,
 	satellites=new THREE.Group,
@@ -55,14 +55,15 @@ for (var i = 0; i < 3; i++) {
 	satellites.add(ball);
 }
 
-let t0 = performance.now(), dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), y0, bias;
+let t0 = performance.now(), t=0, dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), y0, bias;
 
 renderer.setAnimationLoop(function(){
 	if (!scene) return;
-	let t = performance.now(),
-	 dt = Math.min(t-t0, dMax);
+	let t1 = performance.now(),
+	 dt = Math.min(t1-t0, dMax);
 	//if (dt<dMin) return; // !Eh || 
-	t0 = t;
+	t0 = t1;
+	t+=dt;
 	if (cashed.dpr!=devicePixelRatio) renderer.setPixelRatio(cashed.dpr=devicePixelRatio);
 	const rect = canvas.getBoundingClientRect();
 	if (rect.top>innerHeight || rect.bottom<0) return
@@ -75,10 +76,12 @@ renderer.setAnimationLoop(function(){
 	})
 	balls.rotateY(-dt*.0005);
 	let bias0=-(rect.top+rect.height-innerHeight/2)/innerHeight;
-	bias=Math.lerp(bias||bias0, bias0, dt*.006)
+	bias=Math.lerp(bias||bias0, bias0, dt*.01)
 	camera.position.copy(camPos0).applyAxisAngle(camAxis, bias);
 	canvas.style.transform=`translateY(${-bias*20}%)`;
 	camera.lookAt(0,0,0);
+	balls.position.y=.1*Math.sin(t*.0017);
+	balls.position.z=-balls.position.y*.4
 	renderer.render(scene, camera)
 	//console.log('r')
 })
