@@ -55,7 +55,7 @@ for (var i = 0; i < 3; i++) {
 	satellites.add(ball);
 }
 
-let t0 = performance.now(), dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), y0;
+let t0 = performance.now(), dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), y0, bias;
 
 renderer.setAnimationLoop(function(){
 	if (!scene) return;
@@ -74,8 +74,9 @@ renderer.setAnimationLoop(function(){
 		ball.position.applyAxisAngle(ball._axis, -dt*.003)
 	})
 	balls.rotateY(-dt*.0005);
-	let bias=-(rect.top+rect.height-innerHeight/2)/innerHeight
-	camera.position.copy(camPos0).applyAxisAngle(camAxis, bias),
+	let bias0=-(rect.top+rect.height-innerHeight/2)/innerHeight;
+	bias=Math.lerp(bias||bias0, bias0, dt*.006)
+	camera.position.copy(camPos0).applyAxisAngle(camAxis, bias);
 	canvas.style.transform=`translateY(${-bias*20}%)`;
 	camera.lookAt(0,0,0);
 	renderer.render(scene, camera)
