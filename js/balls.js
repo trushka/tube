@@ -82,7 +82,7 @@ renderer.setAnimationLoop(function fn(){
 		renderer.render(scene, camera);
 
 		ctx[i].clearRect(0, 0, canvas.width, canvas.height);
-		ctx[i].drawImage(renderer.domElement?.transferToImageBitmap() || renderer.domElement, 0, 0)
+		ctx[i].drawImage(renderer.domElementtransferToImageBitmap?.() || renderer.domElement, 0, 0)
 	})
 })
 //addEventListener('resize', e=>{w0=0})
