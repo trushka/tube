@@ -5,8 +5,9 @@ body {
 	background: radial-gradient(ellipse 200vmax 200vh at 50% 17vh, #000, #000 calc(50% + -2px), #fff 50%, #fff) no-repeat;
 	color: #ffffff;
 	margin: 0px;
-	height: 300vh;
+	height: 230vh;
 	font-family: Lato,sans-serif;
+	position: relative;
 }
 ._3d {
 	position: absolute;
@@ -100,4 +101,11 @@ body:not(:target) .renderer-bg {
 	right: 10vw;
 	top: calc(118vh - 4vw - var(--size) * 0.5);
 	will-change: transform;
+}
+.balls2{
+	top: auto;
+	left: 10vw;
+	right: auto;
+	bottom: 10vw;
+	--size: min(300px, 30vw);
 }
