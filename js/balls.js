@@ -45,6 +45,7 @@ for (var i = 0; i < 3; i++) {
 let t0 = performance.now(), t=0, dMax = 80, dMin = 1000/60, camAxis=vec3(1,0,0), w0=0, bias=[], test=new THREE.Vector4();
 
 //renderer.autoClear = false;
+renderer.domElement.transferControlToOffscreen?.();
 renderer.setAnimationLoop(function fn(){
 	if (!scene) return;
 	let t1 = performance.now(),
@@ -61,7 +62,6 @@ renderer.setAnimationLoop(function fn(){
 
 	if (renderer.getPixelRatio()!=devicePixelRatio) renderer.setPixelRatio(devicePixelRatio);
 
-	renderer.domElement.transferControlToOffscreen?.();
 	canvases.forEach((canvas, i)=>{
 		const rect = canvas.getBoundingClientRect();
 		if (rect.top>innerHeight || rect.bottom<0) return;
